@@ -83,12 +83,17 @@ export class GroupsService {
                         name: true
                     }
                 },
-                teachers: {
-                    select: {
-                        id: true,
-                        first_name: true
+                groupTeachers:{
+                    select:{
+                        teacher:{
+                            select:{
+                                full_name:true
+                            }
+                        }
                     }
                 }
+                ,
+            
             }
         })
 
@@ -127,15 +132,28 @@ export class GroupsService {
         throw new NotFoundException("Course is not found or inactive with this id");
     }
 
-    const existTeacher = await this.prisma.teacher.findFirst({
-        where: {
-            id: payload.teacher_id,
-            status: Status.active
+    let teachers = Array()
+    if(payload.teachers?.length){
+        teachers = await this.prisma.teacher.findMany({
+            where:{ id: {in: payload.teachers}},
+            select:{id: true}
+        })
+        if(teachers.length !== payload.teachers?.length){
+            throw new NotFoundException('Teacherlardan biri topilmadi')
         }
-    });
+    }
 
-    if (!existTeacher) {
-        throw new NotFoundException("Teacher is not found with this id");
+
+
+    let students = Array()
+    if(payload.students?.length){
+        students = await this.prisma.student.findMany({
+            where:{ id: {in: payload.students}},
+            select:{id: true}
+        })
+        if(students.length !== payload.students?.length){
+            throw new NotFoundException('Studentlardan biri topilmadi')
+        }
     }
 
     const existGroup = await this.prisma.group.findUnique({
@@ -177,8 +195,24 @@ export class GroupsService {
 
     const newGroup = await this.prisma.group.create({
         data: {
-            ...payload,
-            start_date: new Date(payload.start_date)
+            name: payload.name,
+            description: payload.description,
+            course_id: payload.course_id,
+            room_id: payload.room_id,
+            start_time: payload.start_time,
+            max_student: payload.max_student,
+            week_day: payload.week_day,
+            start_date: new Date(payload.start_date),
+            groupTeachers:payload.teachers?.length ? {
+                create: payload.teachers?.map((id)=>({
+                    teacher_id: id
+                }))
+            } : undefined,
+            studentGroups:payload.students?.length ? {
+                create: payload.students?.map((id)=>({
+                   student_id: id
+                }))
+            } : undefined
         }
     });
 

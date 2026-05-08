@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { CourseLevel, WeekDay } from "@prisma/client";
-import { Transform } from "class-transformer";
+import {  WeekDay } from "@prisma/client";
 import { IsDateString, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 
 
@@ -16,10 +15,6 @@ export class CreateGroupDto {
     @ApiProperty()
     @IsNumber()
     course_id: number
-
-    @ApiProperty()
-    @IsNumber()
-    teacher_id: number
 
     @ApiProperty()
     @IsNumber()
@@ -40,5 +35,16 @@ export class CreateGroupDto {
     @ApiProperty()
     @IsNumber()
     max_student: number
+
+    @ApiProperty({type: [Number], example: [1, 2]})
+    @IsOptional()
+    @IsNumber()
+    teachers?: number[]
+
+
+    @ApiProperty({type: [Number], example: [1, 2]})
+    @IsOptional()
+    @IsNumber()
+    students?: number[]
 }
 

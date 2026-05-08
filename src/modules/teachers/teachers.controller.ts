@@ -35,13 +35,13 @@ export class TeachersController {
             schema: {
                 type: 'object',
                 properties: {
-                    first_name: { type: 'string', example: "Alish" },
-                    last_name: { type: 'string' },
+                    full_name: { type: 'string', example: "Ali" },
                     email: { type: 'string' },
                     password: { type: 'string' },
                     phone: { type: 'string' },
                     photo: { type: 'string', format: 'binary' },
                     address: { type: "string" },
+                    groups: {type: 'array', items: {type: 'number'}, example: [1, 2]},
                 }
             }
         })
@@ -57,8 +57,8 @@ export class TeachersController {
         @Post()
         createTeacher(
             @Body() payload: CreateTeacherDto,
-            @UploadedFile() file: Express.Multer.File
+            @UploadedFile() file?: Express.Multer.File
         ) {
-            return this.teacherService.createTeacher(payload, file.filename)
+            return this.teacherService.createTeacher(payload, file?.filename)
         }
 }

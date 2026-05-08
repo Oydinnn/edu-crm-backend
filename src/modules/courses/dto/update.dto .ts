@@ -3,8 +3,9 @@ import { Status } from '@prisma/client';
 import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 
 
-export class CreateCourseDto{
+export class UpdateCourseDto{
     @ApiProperty()
+    @IsOptional()
     @IsString()
     name!:string
 
@@ -13,14 +14,17 @@ export class CreateCourseDto{
     description!:string
 
     @ApiProperty()
+    @IsOptional()
     @IsNumber()
     price!:number
 
     @ApiProperty()
+    @IsOptional()
     @IsNumber()
     duration_month!: number
 
     @ApiProperty()
+    @IsOptional()
     @IsNumber()
     duration_hours!: number
 
