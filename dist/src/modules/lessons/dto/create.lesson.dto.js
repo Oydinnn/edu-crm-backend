@@ -9,17 +9,35 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateLessonDto = void 0;
+exports.CreateLessonDto = exports.AttendanceDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+class AttendanceDto {
+    student_id;
+    isPresent;
+}
+exports.AttendanceDto = AttendanceDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], AttendanceDto.prototype, "student_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], AttendanceDto.prototype, "isPresent", void 0);
 class CreateLessonDto {
     group_id;
     topic;
     description;
+    attendances;
 }
 exports.CreateLessonDto = CreateLessonDto;
 __decorate([
-    (0, swagger_1.ApiProperty)(),
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateLessonDto.prototype, "group_id", void 0);
@@ -34,4 +52,11 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLessonDto.prototype, "description", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: [AttendanceDto] }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => AttendanceDto),
+    __metadata("design:type", Array)
+], CreateLessonDto.prototype, "attendances", void 0);
 //# sourceMappingURL=create.lesson.dto.js.map

@@ -19,4 +19,17 @@ export declare class UsersService {
         success: boolean;
         message: string;
     }>;
+    getMe(userId: number, role: string): Promise<{
+        success: boolean;
+        data: any;
+    }>;
+    getDashboardStats(): Promise<{
+        success: boolean;
+        data: {
+            groups: number;
+            courses: number;
+            students: number;
+            teachers: number;
+        };
+    }>;
 }

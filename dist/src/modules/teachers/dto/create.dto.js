@@ -15,7 +15,6 @@ const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class CreateTeacherDto {
     full_name;
-    password;
     phone;
     email;
     address;
@@ -27,11 +26,6 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateTeacherDto.prototype, "full_name", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreateTeacherDto.prototype, "password", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.Matches)(/^998(50|90|91|93|94|95|97|98|99|20|77|33|88|71|78|70|55|87|25)\d{7}$/, {

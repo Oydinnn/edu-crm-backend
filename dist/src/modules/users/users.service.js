@@ -97,6 +97,75 @@ let UsersService = class UsersService {
             message: "create admin successfully"
         };
     }
+    async getMe(userId, role) {
+        let profile = null;
+        if (role === client_1.Role.SUPERADMIN || role === client_1.Role.ADMIN) {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId }
+            });
+            if (user) {
+                profile = {
+                    id: user.id,
+                    full_name: `${user.first_name} ${user.last_name}`,
+                    email: user.email,
+                    phone: user.phone,
+                    photo: user.photo,
+                    role: user.role
+                };
+            }
+        }
+        else if (role === client_1.Role.TEACHER) {
+            const teacher = await this.prisma.teacher.findUnique({
+                where: { id: userId }
+            });
+            if (teacher) {
+                profile = {
+                    id: teacher.id,
+                    full_name: teacher.full_name,
+                    email: teacher.email,
+                    phone: teacher.phone,
+                    photo: teacher.photo,
+                    role: 'TEACHER'
+                };
+            }
+        }
+        else if (role === client_1.Role.STUDENT) {
+            const student = await this.prisma.student.findUnique({
+                where: { id: userId }
+            });
+            if (student) {
+                profile = {
+                    id: student.id,
+                    full_name: student.full_name,
+                    email: student.email,
+                    phone: student.phone,
+                    photo: student.photo,
+                    role: 'STUDENT'
+                };
+            }
+        }
+        return {
+            success: !!profile,
+            data: profile
+        };
+    }
+    async getDashboardStats() {
+        const [groups, courses, students, teachers] = await Promise.all([
+            this.prisma.group.count(),
+            this.prisma.course.count(),
+            this.prisma.student.count(),
+            this.prisma.teacher.count()
+        ]);
+        return {
+            success: true,
+            data: {
+                groups,
+                courses,
+                students,
+                teachers
+            }
+        };
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

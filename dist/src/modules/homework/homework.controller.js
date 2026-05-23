@@ -37,6 +37,9 @@ let HomeworkController = class HomeworkController {
     createHomework(req, payload, file) {
         return this.homeworkService.createHomework(payload, req["user"], file?.filename);
     }
+    getGroupHomework(groupId, req) {
+        return this.homeworkService.getGroupHomework(groupId, req['user']);
+    }
 };
 exports.HomeworkController = HomeworkController;
 __decorate([
@@ -99,6 +102,19 @@ __decorate([
         create_dto_1.CreateHomeworkDto, Object]),
     __metadata("design:returntype", void 0)
 ], HomeworkController.prototype, "createHomework", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: `${client_1.Role.SUPERADMIN}, ${client_1.Role.ADMIN}`
+    }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
+    (0, role_1.Roles)(client_1.Role.SUPERADMIN, client_1.Role.ADMIN, client_1.Role.TEACHER),
+    (0, common_1.Get)(":groupId"),
+    __param(0, (0, common_1.Param)("groupId", common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Request]),
+    __metadata("design:returntype", void 0)
+], HomeworkController.prototype, "getGroupHomework", null);
 exports.HomeworkController = HomeworkController = __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('homework'),

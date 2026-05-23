@@ -43,9 +43,9 @@ export declare class HomeworkService {
             id: number;
             created_at: Date;
             update_at: Date;
-            group_id: number;
             title: string;
             file: string | null;
+            group_id: number;
             teacher_id: number | null;
             user_id: number | null;
             lesson_id: number;
@@ -57,5 +57,25 @@ export declare class HomeworkService {
     }, filename?: string): Promise<{
         success: boolean;
         message: string;
+    }>;
+    getGroupHomework(groupId: number, currentUser: {
+        id: number;
+        role: Role;
+    }): Promise<{
+        success: boolean;
+        data: {
+            groupFormated: {
+                id: number;
+                topic: string;
+                created_at: Date;
+                homework: {
+                    created_at: Date;
+                }[];
+            }[];
+            homeworkPending: number;
+            homeworkAccepted: number;
+            existStudentInGroup: number;
+            studentsInGroup: number;
+        };
     }>;
 }

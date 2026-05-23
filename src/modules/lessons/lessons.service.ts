@@ -100,11 +100,27 @@ export class LessonsService {
       throw new ForbiddenException("This lesson is not assigned to you");
     }
 
+    const { attendances, ...lessonPayload } = payload as any;
+
+    const attendancesNested = attendances
+      ? {
+          attendances: {
+            create: attendances.map((a: any) => ({
+              student_id: a.student_id,
+              isPresent: a.isPresent,
+              teacher_id: currentUser.role == Role.TEACHER ? currentUser.id : null,
+              user_id: currentUser.role != Role.TEACHER ? currentUser.id : null,
+            })),
+          },
+        }
+      : {};
+
     await this.prisma.lesson.create({
       data: {
-        ...payload,
-        teacher_id: currentUser.role == "TEACHER" ? currentUser.id : null,
-        user_id: currentUser.role != "TEACHER" ? currentUser.id : null,
+        ...lessonPayload,
+        teacher_id: currentUser.role == Role.TEACHER ? currentUser.id : null,
+        user_id: currentUser.role != Role.TEACHER ? currentUser.id : null,
+        ...attendancesNested,
       },
     });
 

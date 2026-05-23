@@ -1,18 +1,41 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-import { IsNumber, IsOptional, IsString } from "class-validator"
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
 
+export class AttendanceDto {
+  @ApiProperty()
+  @IsNumber()
+  student_id: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  isPresent: boolean;
+}
 
 export class CreateLessonDto {
-    @ApiProperty()
-    @IsNumber()
-    group_id : number
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  group_id?: number;
 
-    @ApiProperty()
-    @IsString()
-    topic : string
+  @ApiProperty()
+  @IsString()
+  topic: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    description? : string
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional({ type: [AttendanceDto] })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => AttendanceDto)
+  attendances?: AttendanceDto[]; // ✅ optional
 }

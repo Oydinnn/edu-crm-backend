@@ -46,12 +46,16 @@ exports.TeachersService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../core/database/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
-const client_1 = require("@prisma/client");
 const fs = __importStar(require("fs"));
+const email_service_1 = require("../../common/email/email.service");
+const client_1 = require("@prisma/client");
+const generate_password_1 = require("../../common/utills/generate-password");
 let TeachersService = class TeachersService {
     prisma;
-    constructor(prisma) {
+    emailService;
+    constructor(prisma, emailService) {
         this.prisma = prisma;
+        this.emailService = emailService;
     }
     async getAllTeachers() {
         const teachers = await this.prisma.teacher.findMany({
@@ -65,6 +69,7 @@ let TeachersService = class TeachersService {
                 photo: true,
                 email: true,
                 address: true,
+                created_at: true,
                 groupTeachers: {
                     select: {
                         group: { select: { id: true, name: true } },
@@ -84,6 +89,7 @@ let TeachersService = class TeachersService {
                 photo: photoUrl,
                 email: el.email,
                 address: el.address,
+                created_at: el.created_at,
                 groups: el.groupTeachers.map((gt) => gt.group)
             };
         });
@@ -99,10 +105,12 @@ let TeachersService = class TeachersService {
             },
         });
         if (existTeacher) {
-            filename && fs.unlinkSync(`src/uploads/${filename}`);
+            if (filename) {
+                fs.unlinkSync(`src/uploads/${filename}`);
+            }
             throw new common_1.ConflictException("Teacher with this phone or email already exists");
         }
-        let existingGroups = Array();
+        let existingGroups = [];
         if (payload.groups?.length) {
             existingGroups = await this.prisma.group.findMany({
                 where: { id: { in: payload.groups } },
@@ -114,8 +122,23 @@ let TeachersService = class TeachersService {
                 throw new common_1.NotFoundException(`Guruhlar topilmadi: ${missingIds.join(", ")}`);
             }
         }
-        const hashPass = await bcrypt.hash(payload.password, 10);
-        await this.prisma.teacher.create({
+        const plainPassword = (0, generate_password_1.generateRandomPassword)(10);
+        const hashPass = await bcrypt.hash(plainPassword, 10);
+        let emailError = null;
+        try {
+            await this.emailService.sendTeacherCredentials(payload.email, payload.phone, plainPassword, payload.full_name);
+        }
+        catch (emailError) {
+            if (filename) {
+                fs.unlinkSync(`src/uploads/${filename}`);
+            }
+            throw new common_1.BadRequestException({
+                success: false,
+                message: "Email yuborishda xatolik. Iltimos, email manzilni tekshiring.",
+                error: emailError.message
+            });
+        }
+        const newTeacher = await this.prisma.teacher.create({
             data: {
                 full_name: payload.full_name,
                 photo: filename ?? null,
@@ -126,9 +149,7 @@ let TeachersService = class TeachersService {
                 groupTeachers: payload.groups?.length
                     ? {
                         create: payload.groups.map((groupId) => ({
-                            group: {
-                                connect: { id: groupId },
-                            },
+                            group: { connect: { id: groupId } },
                         })),
                     }
                     : undefined,
@@ -136,13 +157,114 @@ let TeachersService = class TeachersService {
         });
         return {
             success: true,
-            message: "Teacher created",
+            message: "Teacher created successfully. Login credentials sent to email.",
+            data: {
+                id: newTeacher.id,
+                full_name: newTeacher.full_name,
+                phone: newTeacher.phone,
+                email: newTeacher.email,
+            }
         };
+    }
+    async updateTeacher(id, payload, photoFilename) {
+        const teacher = await this.prisma.teacher.findUnique({
+            where: { id },
+            include: { groupTeachers: true }
+        });
+        if (!teacher)
+            throw new common_1.NotFoundException("O'qituvchi topilmadi");
+        let groupsArray = payload.groups;
+        if (typeof payload.groups === 'string') {
+            try {
+                groupsArray = JSON.parse(payload.groups);
+            }
+            catch (e) {
+                groupsArray = [];
+            }
+        }
+        const updateData = {};
+        if (payload.full_name !== undefined)
+            updateData.full_name = payload.full_name;
+        if (payload.email !== undefined)
+            updateData.email = payload.email;
+        if (payload.phone !== undefined)
+            updateData.phone = payload.phone;
+        if (payload.address !== undefined)
+            updateData.address = payload.address;
+        if (payload.password) {
+            updateData.password = await bcrypt.hash(payload.password, 10);
+        }
+        if (photoFilename) {
+            if (teacher.photo) {
+                const oldPath = `./src/uploads/${teacher.photo}`;
+                if (fs.existsSync(oldPath))
+                    fs.unlinkSync(oldPath);
+            }
+            updateData.photo = photoFilename;
+        }
+        if (groupsArray !== undefined && Array.isArray(groupsArray)) {
+            await this.prisma.groupTeacher.deleteMany({
+                where: { teacher_id: id }
+            });
+            if (groupsArray.length > 0) {
+                const existingGroups = await this.prisma.group.findMany({
+                    where: { id: { in: groupsArray } }
+                });
+                if (existingGroups.length !== groupsArray.length) {
+                    throw new common_1.NotFoundException('Ba\'zi guruhlar topilmadi');
+                }
+                await this.prisma.groupTeacher.createMany({
+                    data: groupsArray.map(groupId => ({
+                        group_id: groupId,
+                        teacher_id: id
+                    }))
+                });
+            }
+        }
+        const updatedTeacher = await this.prisma.teacher.update({
+            where: { id },
+            data: updateData,
+            include: {
+                groupTeachers: {
+                    include: {
+                        group: true
+                    }
+                }
+            }
+        });
+        return {
+            success: true,
+            message: "Teacher updated successfully",
+            data: updatedTeacher
+        };
+    }
+    async deleteTeacher(id) {
+        const teacher = await this.prisma.teacher.findUnique({
+            where: { id },
+            include: {
+                groupTeachers: true
+            }
+        });
+        if (!teacher)
+            throw new common_1.NotFoundException("O'qituvchi topilmadi");
+        if (teacher.groupTeachers.length > 0) {
+            await this.prisma.groupTeacher.deleteMany({
+                where: { teacher_id: id }
+            });
+        }
+        if (teacher.photo) {
+            const fs = require('fs');
+            const path = `./src/uploads/${teacher.photo.split('/').pop()}`;
+            if (fs.existsSync(path))
+                fs.unlinkSync(path);
+        }
+        return this.prisma.teacher.delete({ where: { id } });
     }
 };
 exports.TeachersService = TeachersService;
 exports.TeachersService = TeachersService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        email_service_1.EmailService])
 ], TeachersService);
 //# sourceMappingURL=teachers.service.js.map

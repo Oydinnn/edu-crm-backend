@@ -119,6 +119,73 @@ let HomeworkService = class HomeworkService {
             message: "Homework recorded",
         };
     }
+    async getGroupHomework(groupId, currentUser) {
+        const group = await this.prisma.group.findMany({
+            where: {
+                id: groupId
+            },
+            include: {
+                lessons: {
+                    select: {
+                        id: true,
+                        topic: true,
+                        created_at: true,
+                        homework: {
+                            select: {
+                                created_at: true,
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        const homeworkPending = await this.prisma.homeworkAnswerStudent.findMany({
+            where: {
+                homeworkStatus: client_1.HomeworkStatus.PENDING,
+            },
+            select: {
+                id: true,
+            }
+        });
+        const homeworkAccepted = await this.prisma.homeworkResult.findMany({
+            where: {
+                homeworkStatus: client_1.HomeworkStatus.ACCEPTED,
+            },
+            select: {
+                id: true,
+            }
+        });
+        const existStudentInGroup = await this.prisma.studentGroup.findMany({
+            where: {
+                group_id: groupId,
+            },
+            select: {
+                students: {
+                    select: {
+                        id: true,
+                    }
+                }
+            }
+        });
+        const groupFormated = group[0].lessons.map(el => {
+            return {
+                id: el.id,
+                topic: el.topic,
+                created_at: el.created_at,
+                homework: el.homework,
+            };
+        });
+        return {
+            success: true,
+            data: {
+                groupFormated,
+                homeworkPending: homeworkPending.length,
+                homeworkAccepted: homeworkAccepted.length,
+                existStudentInGroup: existStudentInGroup.length,
+                studentsInGroup: existStudentInGroup.length
+            }
+        };
+    }
 };
 exports.HomeworkService = HomeworkService;
 exports.HomeworkService = HomeworkService = __decorate([

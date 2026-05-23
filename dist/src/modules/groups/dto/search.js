@@ -11,10 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.filterDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const client_1 = require("@prisma/client");
 const class_validator_1 = require("class-validator");
 class filterDto {
     groupName;
     max_student;
+    status;
 }
 exports.filterDto = filterDto;
 __decorate([
@@ -27,4 +29,10 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], filterDto.prototype, "max_student", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsEnum)(client_1.GroupStatus),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], filterDto.prototype, "status", void 0);
 //# sourceMappingURL=search.js.map

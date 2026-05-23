@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "src/core/database/prisma.service";
 import { CreateHomeworkDto } from "./dto/create.dto";
-import { Role } from "@prisma/client";
+import { HomeworkStatus, Role } from "@prisma/client";
 
 @Injectable()
 export class HomeworkService {
@@ -131,5 +131,79 @@ export class HomeworkService {
       success: true,
       message: "Homework recorded",
     };
+  }
+
+  async getGroupHomework(groupId: number, currentUser:{id:number, role: Role}){
+    const group = await this.prisma.group.findMany({
+      where:{
+        id: groupId
+      },
+      include:{
+        lessons:{
+          select:{
+            id:true,
+            topic: true,
+            created_at: true,
+            homework:{
+              select:{
+                created_at: true,
+            }
+            
+          }
+        }
+      }}
+    })
+
+    const homeworkPending = await this.prisma.homeworkAnswerStudent.findMany({
+      where:{
+        homeworkStatus: HomeworkStatus.PENDING,
+      },
+        select:{
+          id: true,
+        }
+    });
+
+    const homeworkAccepted = await this.prisma.homeworkResult.findMany({
+      where:{
+        homeworkStatus: HomeworkStatus.ACCEPTED,
+      },
+        select:{
+          id: true,
+        }
+    });
+
+    const existStudentInGroup = await this.prisma.studentGroup.findMany({
+      where: {
+        group_id: groupId,
+      },
+      select:{
+        students:{
+          select:{
+            id: true,
+          }
+        }
+      }
+    })
+
+    const groupFormated = group[0].lessons.map(el => {
+      return {
+        id: el.id,
+        topic: el.topic,
+        created_at: el.created_at,
+        homework: el.homework,
+      }})
+
+      return {
+        success: true,
+        data: { 
+          groupFormated,
+          homeworkPending: homeworkPending.length,
+          homeworkAccepted: homeworkAccepted.length,
+          existStudentInGroup: existStudentInGroup.length,
+          studentsInGroup: existStudentInGroup.length
+        }
+      }
+
+   
   }
 }

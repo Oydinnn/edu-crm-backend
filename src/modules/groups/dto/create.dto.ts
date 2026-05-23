@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {  WeekDay } from "@prisma/client";
-import { IsDateString, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 
 
 export class CreateGroupDto {
@@ -38,13 +39,16 @@ export class CreateGroupDto {
 
     @ApiProperty({type: [Number], example: [1, 2]})
     @IsOptional()
-    @IsNumber()
+    @IsArray()
+    @IsNumber({}, { each: true })
     teachers?: number[]
 
 
     @ApiProperty({type: [Number], example: [1, 2]})
     @IsOptional()
-    @IsNumber()
+    @IsArray()
+    @IsNumber({}, { each: true }) 
+    @Type(() => Number)
     students?: number[]
 }
 

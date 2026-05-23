@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateAdminDto } from './dto/create.admin.dto';
 import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -32,4 +32,25 @@ export class UsersController {
     createAdmin(@Body() payload: CreateAdminDto) {
         return this.userService.createAdmin(payload)
     }
+
+    @ApiOperation({
+        summary: 'Get current user profile details'
+    })
+    @UseGuards(AuthGuard)
+    @Get('me')
+    getMe(@Req() req) {
+        const userId = req.user.id;
+        const role = req.user.role;
+        return this.userService.getMe(userId, role);
+    }
+
+    @ApiOperation({
+        summary: 'Get counts of groups, courses, students, and teachers'
+    })
+    @UseGuards(AuthGuard)
+    @Get('dashboard-stats')
+    getDashboardStats() {
+        return this.userService.getDashboardStats();
+    }
 }
+

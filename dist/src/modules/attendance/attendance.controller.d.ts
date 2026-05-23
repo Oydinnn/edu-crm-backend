@@ -11,9 +11,9 @@ export declare class AttendanceController {
             update_at: Date;
             student_id: number;
             teacher_id: number | null;
+            isPresent: boolean;
             user_id: number | null;
             lesson_id: number;
-            isPresent: boolean;
         }[];
     }>;
     createAttendance(payload: CreateAttendanceDto, req: Request): Promise<{

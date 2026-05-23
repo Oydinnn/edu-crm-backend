@@ -19,4 +19,17 @@ export declare class UsersController {
         success: boolean;
         message: string;
     }>;
+    getMe(req: any): Promise<{
+        success: boolean;
+        data: any;
+    }>;
+    getDashboardStats(): Promise<{
+        success: boolean;
+        data: {
+            groups: number;
+            courses: number;
+            students: number;
+            teachers: number;
+        };
+    }>;
 }

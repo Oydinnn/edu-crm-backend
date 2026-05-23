@@ -7,14 +7,19 @@ const common_1 = require("@nestjs/common");
 const path_1 = require("path");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    app.useStaticAssets((0, path_1.join)(__dirname, "..", "uploads"), {
+    console.log("__dirname:", __dirname);
+    console.log("uploads path:", (0, path_1.join)(__dirname, "..", "..", "src", "uploads"));
+    app.useStaticAssets((0, path_1.join)(__dirname, "..", "..", "src", "uploads"), {
         prefix: "/uploads/",
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
+        transform: true,
         whitelist: true,
     }));
     app.enableCors({
-        origin: "http://localhost:5173",
+        origin: ["http://localhost:5173",
+            'https://crmfrontendn26.netlify.app',
+        ],
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
         credentials: true,
         allowedHeaders: [

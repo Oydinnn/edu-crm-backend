@@ -58,75 +58,275 @@ let StudentsService = class StudentsService {
     async getMyGroups(currentUser) {
         const myGroups = await this.prisma.studentGroup.findMany({
             where: {
-                student_id: currentUser.id
+                student_id: currentUser.id,
+                status: client_1.Status.active,
             },
-            select: {
+            include: {
                 groups: {
-                    select: {
-                        id: true,
-                        name: true
-                    }
-                }
-            }
+                    include: {
+                        courses: true,
+                        rooms: true,
+                    },
+                },
+            },
         });
         return {
             success: true,
-            data: myGroups.map(el => el.groups)
+            data: myGroups.map((el) => el.groups),
         };
     }
-    async getAllStudents(pagination) {
+    async getAllStudents(pagination, search) {
         const { page, limit } = pagination;
+        const { full_name, phone, status } = search;
+        let searchWhere = {};
+        if (status) {
+            searchWhere["status"] = status;
+        }
+        else {
+            searchWhere["status"] = "active";
+        }
+        if (full_name)
+            searchWhere["full_name"] = full_name;
+        if (phone)
+            searchWhere["phone"] = phone;
         const students = await this.prisma.student.findMany({
-            where: {
-                status: client_1.Status.active
-            },
+            where: searchWhere,
             select: {
                 id: true,
-                first_name: true,
-                last_name: true,
+                full_name: true,
                 phone: true,
                 photo: true,
                 email: true,
                 address: true,
-                birth_date: true
+                birth_date: true,
+                created_at: true,
+                status: true,
+                studentGroups: {
+                    select: {
+                        groups: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                    },
+                },
             },
-            skip: (limit ? +limit : 10) * (page ? +page - 1 : 0),
-            take: limit ? +limit : 10
+            skip: (limit ? +limit : 10) * ((page ? +page : 1) - 1),
+            take: limit ? +limit : 10,
+            orderBy: {
+                created_at: "desc",
+            },
+        });
+        const total = await this.prisma.student.count({
+            where: searchWhere,
+        });
+        const formattedStudents = students.map((student) => {
+            return {
+                id: student.id,
+                full_name: student.full_name,
+                photo: student.photo,
+                phone: student.phone,
+                email: student.email,
+                status: student.status,
+                address: student.address,
+                birth_date: student.birth_date,
+                created_at: student.created_at,
+                groups: student.studentGroups.map((group) => group.groups),
+            };
         });
         return {
             success: true,
-            data: students
+            data: formattedStudents,
+            meta: {
+                total,
+                page: page ? +page : 1,
+                limit: limit ? +limit : 10,
+                totalPages: Math.ceil(total / (limit ? +limit : 10)),
+            },
         };
     }
     async createStudent(payload, filename) {
+        const { groups, ...rest } = payload;
         const existStudent = await this.prisma.student.findFirst({
             where: {
-                OR: [
-                    { phone: payload.phone },
-                    { email: payload.email }
-                ]
-            }
+                OR: [{ phone: payload.phone }, { email: payload.email }],
+            },
         });
         if (existStudent) {
-            throw new common_1.ConflictException();
+            throw new common_1.ConflictException("Student with this phone or email already exists");
         }
         const hashPass = await bcrypt.hash(payload.password, 10);
-        await this.prisma.student.create({
+        const student = await this.prisma.student.create({
             data: {
-                first_name: payload.first_name,
-                last_name: payload.last_name,
+                full_name: payload.full_name,
                 photo: filename ?? null,
                 phone: payload.phone,
                 birth_date: new Date(payload.birth_date),
                 email: payload.email,
                 password: hashPass,
-                address: payload.address
-            }
+                address: payload.address,
+            },
         });
-        await this.emailService.sendEmail(payload.email, payload.phone, payload.password);
+        if (groups && groups.length > 0) {
+            const validGroups = groups.filter((id) => !isNaN(id) && id > 0);
+            if (validGroups.length > 0) {
+                await this.prisma.studentGroup.createMany({
+                    data: validGroups.map((group_id) => ({
+                        student_id: student.id,
+                        group_id,
+                    })),
+                });
+            }
+        }
+        try {
+            await this.emailService.sendEmail(payload.email, payload.phone, payload.password, payload.full_name);
+        }
+        catch (emailError) {
+            console.error("Email yuborishda xatolik:", emailError);
+        }
         return {
             success: true,
-            message: "Student created"
+            message: "Student created successfully. Login credentials sent to email.",
+            data: {
+                id: student.id,
+                full_name: student.full_name,
+                email: student.email,
+                phone: student.phone,
+                groups: groups ?? []
+            },
+        };
+    }
+    async getStudentById(id) {
+        const student = await this.prisma.student.findUnique({
+            where: { id, status: client_1.StudentStatus.active },
+            select: {
+                id: true,
+                full_name: true,
+                phone: true,
+                photo: true,
+                email: true,
+                address: true,
+                birth_date: true,
+                studentGroups: {
+                    where: { status: client_1.Status.active },
+                    include: {
+                        groups: {
+                            include: {
+                                courses: true,
+                                rooms: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        if (!student) {
+            throw new common_1.NotFoundException("Student not found");
+        }
+        return {
+            success: true,
+            data: student,
+        };
+    }
+    async updateStudent(id, payload, filename) {
+        const { status, groups, ...rest } = payload;
+        const student = await this.prisma.student.findUnique({
+            where: { id },
+        });
+        if (!student) {
+            throw new common_1.NotFoundException("Student not found");
+        }
+        const updateData = {};
+        if (payload.full_name)
+            updateData.full_name = payload.full_name;
+        if (payload.email)
+            updateData.email = payload.email;
+        if (payload.phone)
+            updateData.phone = payload.phone;
+        if (payload.address)
+            updateData.address = payload.address;
+        if (payload.status)
+            updateData.status = payload.status;
+        if (payload.birth_date)
+            updateData.birth_date = new Date(payload.birth_date);
+        if (filename)
+            updateData.photo = filename;
+        if (payload.password) {
+            updateData.password = await bcrypt.hash(payload.password, 10);
+        }
+        const updatedStudent = await this.prisma.student.update({
+            where: { id },
+            data: updateData,
+        });
+        if (groups && Array.isArray(groups)) {
+            await this.prisma.studentGroup.deleteMany({ where: { student_id: id } });
+            const validGroups = groups.filter((gId) => !isNaN(gId) && gId > 0);
+            if (validGroups.length > 0) {
+                await this.prisma.studentGroup.createMany({
+                    data: validGroups.map((group_id) => ({ student_id: id, group_id })),
+                });
+            }
+        }
+        return {
+            success: true,
+            message: "Student updated successfully",
+            data: updatedStudent,
+        };
+    }
+    async toggleStatus(id, status) {
+        const student = await this.prisma.student.findUnique({ where: { id } });
+        if (!student)
+            throw new common_1.NotFoundException(`Student topilmadi`);
+        return this.prisma.student.update({
+            where: { id },
+            data: { status },
+        });
+    }
+    async deleteStudent(id) {
+        const student = await this.prisma.student.findUnique({
+            where: { id },
+        });
+        if (!student) {
+            throw new common_1.NotFoundException("Student not found");
+        }
+        const deletedStudent = await this.prisma.student.update({
+            where: { id },
+            data: { status: client_1.StudentStatus.inactive },
+        });
+        if (student.photo) {
+            const fs = require("fs");
+            const path = `./src/uploads/${student.photo}`;
+            if (fs.existsSync(path)) {
+                fs.unlinkSync(path);
+            }
+        }
+        return {
+            success: true,
+            message: "Student deleted successfully",
+        };
+    }
+    async searchStudents(search) {
+        const students = await this.prisma.student.findMany({
+            where: {
+                status: client_1.StudentStatus.active,
+                full_name: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+            select: {
+                id: true,
+                full_name: true,
+                phone: true,
+                email: true,
+                photo: true,
+            },
+            take: 10,
+        });
+        return {
+            success: true,
+            data: students,
         };
     }
 };

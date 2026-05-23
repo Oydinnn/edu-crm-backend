@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateGroupDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const client_1 = require("@prisma/client");
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class CreateGroupDto {
     name;
@@ -69,13 +70,16 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({ type: [Number], example: [1, 2] }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsNumber)({}, { each: true }),
     __metadata("design:type", Array)
 ], CreateGroupDto.prototype, "teachers", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ type: [Number], example: [1, 2] }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsNumber)({}, { each: true }),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Array)
 ], CreateGroupDto.prototype, "students", void 0);
 //# sourceMappingURL=create.dto.js.map

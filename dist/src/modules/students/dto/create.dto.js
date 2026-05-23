@@ -11,27 +11,23 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateStudentDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class CreateStudentDto {
-    first_name;
-    last_name;
+    full_name;
     password;
     phone;
     email;
     birth_date;
     address;
+    groups;
 }
 exports.CreateStudentDto = CreateStudentDto;
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateStudentDto.prototype, "first_name", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreateStudentDto.prototype, "last_name", void 0);
+], CreateStudentDto.prototype, "full_name", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsString)(),
@@ -57,4 +53,20 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateStudentDto.prototype, "address", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [Number], example: [1, 2] }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (!value)
+            return [];
+        if (typeof value === "string") {
+            return value.split(",").map((v) => Number(v.trim()));
+        }
+        if (Array.isArray(value)) {
+            return value.map((v) => Number(v));
+        }
+        return [];
+    }, { toClassOnly: true }),
+    __metadata("design:type", Array)
+], CreateStudentDto.prototype, "groups", void 0);
 //# sourceMappingURL=create.dto.js.map

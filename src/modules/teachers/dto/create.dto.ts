@@ -8,9 +8,10 @@ export class CreateTeacherDto {
     @IsString()
     full_name: string
 
-    @ApiProperty()
-    @IsString()
-    password: string
+    // @ApiProperty()
+    // @IsOptional()
+    // @IsString()
+    // password?: string
 
     @ApiProperty()
     @Matches(/^998(50|90|91|93|94|95|97|98|99|20|77|33|88|71|78|70|55|87|25)\d{7}$/,{

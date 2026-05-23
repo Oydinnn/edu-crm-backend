@@ -9,6 +9,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const mailer_1 = require("@nestjs-modules/mailer");
+const handlebars_adapter_1 = require("@nestjs-modules/mailer/dist/adapters/handlebars.adapter");
+const path_1 = require("path");
+const serve_static_1 = require("@nestjs/serve-static");
 const prisma_module_1 = require("./core/database/prisma.module");
 const users_module_1 = require("./modules/users/users.module");
 const students_module_1 = require("./modules/students/students.module");
@@ -17,12 +21,11 @@ const courses_module_1 = require("./modules/courses/courses.module");
 const groups_module_1 = require("./modules/groups/groups.module");
 const rooms_module_1 = require("./modules/rooms/rooms.module");
 const auth_module_1 = require("./modules/auth/auth.module");
-const serve_static_1 = require("@nestjs/serve-static");
-const path_1 = require("path");
 const lessons_module_1 = require("./modules/lessons/lessons.module");
 const attendance_module_1 = require("./modules/attendance/attendance.module");
 const homework_module_1 = require("./modules/homework/homework.module");
 const seeder_module_1 = require("./common/seed/seeder.module");
+const email_module_1 = require("./common/email/email.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -34,8 +37,35 @@ exports.AppModule = AppModule = __decorate([
                 serveRoot: "/files"
             }),
             config_1.ConfigModule.forRoot({
-                isGlobal: true
+                isGlobal: true,
+                envFilePath: '.env',
             }),
+            mailer_1.MailerModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                useFactory: async (configService) => ({
+                    transport: {
+                        host: configService.get('SMTP_HOST') || 'smtp.gmail.com',
+                        port: parseInt(configService.get('SMTP_PORT') || '587'),
+                        secure: configService.get('SMTP_SECURE') === 'true' ? true : false,
+                        auth: {
+                            user: configService.get('SMTP_USER') || configService.get('EMAIL'),
+                            pass: configService.get('SMTP_PASSWORD') || configService.get('EMAIL_PASSWORD'),
+                        },
+                    },
+                    defaults: {
+                        from: `"CRM System" <${configService.get('SMTP_FROM') || configService.get('EMAIL')}>`,
+                    },
+                    template: {
+                        dir: (0, path_1.join)(process.cwd(), 'src', 'templates'),
+                        adapter: new handlebars_adapter_1.HandlebarsAdapter(),
+                        options: {
+                            strict: true,
+                        },
+                    },
+                }),
+                inject: [config_1.ConfigService],
+            }),
+            email_module_1.EmailModule,
             auth_module_1.AuthModule,
             prisma_module_1.PrismaModule,
             users_module_1.UsersModule,

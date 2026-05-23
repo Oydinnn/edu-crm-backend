@@ -32,6 +32,14 @@ let UsersController = class UsersController {
     createAdmin(payload) {
         return this.userService.createAdmin(payload);
     }
+    getMe(req) {
+        const userId = req.user.id;
+        const role = req.user.role;
+        return this.userService.getMe(userId, role);
+    }
+    getDashboardStats() {
+        return this.userService.getDashboardStats();
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -57,6 +65,27 @@ __decorate([
     __metadata("design:paramtypes", [create_admin_dto_1.CreateAdminDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "createAdmin", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get current user profile details'
+    }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard),
+    (0, common_1.Get)('me'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "getMe", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get counts of groups, courses, students, and teachers'
+    }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard),
+    (0, common_1.Get)('dashboard-stats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "getDashboardStats", null);
 exports.UsersController = UsersController = __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('users'),

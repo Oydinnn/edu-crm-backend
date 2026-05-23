@@ -8,6 +8,7 @@ import { Role } from '@prisma/client';
 import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/role';
+import { group } from 'console';
 
 @ApiBearerAuth()
 @Controller('homework')
@@ -69,5 +70,18 @@ export class HomeworkController {
         @UploadedFile() file?: Express.Multer.File
     ) {
         return this.homeworkService.createHomework(payload,req["user"],file?.filename)
+    }
+
+   @ApiOperation({
+        summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.SUPERADMIN, Role.ADMIN, Role.TEACHER)
+    @Get(":groupId")
+    getGroupHomework(
+        @Param("groupId", ParseIntPipe) groupId : number,
+        @Req() req : Request
+    ){
+        return this.homeworkService.getGroupHomework(groupId, req['user'])
     }
 }

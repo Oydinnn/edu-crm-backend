@@ -12,6 +12,7 @@ const common_1 = require("@nestjs/common");
 const path_1 = require("path");
 const handlebars_adapter_1 = require("@nestjs-modules/mailer/dist/adapters/handlebars.adapter");
 const email_service_1 = require("./email.service");
+const config_1 = require("@nestjs/config");
 let EmailModule = class EmailModule {
 };
 exports.EmailModule = EmailModule;
@@ -19,25 +20,32 @@ exports.EmailModule = EmailModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
         imports: [
-            mailer_1.MailerModule.forRoot({
-                transport: {
-                    service: "gmail",
-                    auth: {
-                        user: "abdukhoshim99@gmail.com",
-                        pass: "nmsjrxqrofppxirx"
-                    }
-                },
-                defaults: {
-                    from: '"N26" <abdukhoshim99@gmail.com>'
-                },
-                template: {
-                    dir: (0, path_1.join)(process.cwd(), "src", "templates"),
-                    adapter: new handlebars_adapter_1.HandlebarsAdapter(),
-                    options: {
-                        strict: true
-                    }
-                }
-            })
+            config_1.ConfigModule,
+            mailer_1.MailerModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                useFactory: async (configService) => ({
+                    transport: {
+                        host: configService.get('SMTP_HOST'),
+                        port: parseInt(configService.get('SMTP_PORT') || '587'),
+                        secure: configService.get('SMTP_SECURE') === 'true',
+                        auth: {
+                            user: configService.get('SMTP_USER'),
+                            pass: configService.get('SMTP_PASSWORD'),
+                        },
+                    },
+                    defaults: {
+                        from: `"CRM System" <${configService.get('SMTP_FROM')}>`,
+                    },
+                    template: {
+                        dir: (0, path_1.join)(__dirname, '..', 'templates'),
+                        adapter: new handlebars_adapter_1.HandlebarsAdapter(),
+                        options: {
+                            strict: true,
+                        },
+                    },
+                }),
+                inject: [config_1.ConfigService],
+            }),
         ],
         providers: [email_service_1.EmailService],
         exports: [email_service_1.EmailService]
