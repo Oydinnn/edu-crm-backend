@@ -7,8 +7,8 @@ import { join } from "path";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  console.log("__dirname:", __dirname);
-  console.log("uploads path:", join(__dirname, "..", "..", "src", "uploads"));
+  // console.log("__dirname:", __dirname);
+  // console.log("uploads path:", join(__dirname, "..", "..", "src", "uploads"));
   app.useStaticAssets(join(__dirname,  "..", "..", "src", "uploads"), {
     prefix: "/uploads/",
   });
@@ -32,6 +32,7 @@ async function bootstrap() {
       "Accept",
       "X-Requested-With",
     ],
+    maxAge: 86400,
   });
 
   app.setGlobalPrefix("api/v1");

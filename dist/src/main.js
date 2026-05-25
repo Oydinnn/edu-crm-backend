@@ -7,8 +7,6 @@ const common_1 = require("@nestjs/common");
 const path_1 = require("path");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    console.log("__dirname:", __dirname);
-    console.log("uploads path:", (0, path_1.join)(__dirname, "..", "..", "src", "uploads"));
     app.useStaticAssets((0, path_1.join)(__dirname, "..", "..", "src", "uploads"), {
         prefix: "/uploads/",
     });
@@ -28,6 +26,7 @@ async function bootstrap() {
             "Accept",
             "X-Requested-With",
         ],
+        maxAge: 86400,
     });
     app.setGlobalPrefix("api/v1");
     const config = new swagger_1.DocumentBuilder()

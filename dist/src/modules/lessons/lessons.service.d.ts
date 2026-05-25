@@ -9,22 +9,22 @@ export declare class LessonsService {
     }): Promise<{
         success: boolean;
         data: {
-            topic: string;
             id: number;
             created_at: Date;
+            topic: string;
         }[];
     }>;
     getAllLessons(): Promise<{
         sucess: boolean;
         data: {
-            group_id: number;
-            topic: string;
-            description: string | null;
             id: number;
             status: import("@prisma/client").$Enums.Status;
             created_at: Date;
             update_at: Date;
+            description: string | null;
+            group_id: number;
             teacher_id: number | null;
+            topic: string;
             user_id: number | null;
         }[];
     }>;
