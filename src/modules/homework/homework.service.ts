@@ -200,7 +200,7 @@ export class HomeworkService {
           homeworkPending: homeworkPending.length,
           homeworkAccepted: homeworkAccepted.length,
           existStudentInGroup: existStudentInGroup.length,
-          studentsInGroup: existStudentInGroup.length
+          // studentsInGroup: existStudentInGroup.length
         }
       }
 
