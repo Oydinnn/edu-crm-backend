@@ -26,6 +26,7 @@ const multer_1 = require("multer");
 const pagination_dto_1 = require("./dto/pagination.dto");
 const update_dto_1 = require("./dto/update.dto");
 const search_1 = require("./dto/search");
+const createHomeworkAnswer_dto_1 = require("./dto/createHomeworkAnswer.dto");
 let StudentsController = class StudentsController {
     studentService;
     constructor(studentService) {
@@ -51,6 +52,9 @@ let StudentsController = class StudentsController {
     }
     deleteStudent(id) {
         return this.studentService.deleteStudent(+id);
+    }
+    createHomeworkAnswer(homeworkId, req, payload, file) {
+        return this.studentService.createHomeworkAnswer(homeworkId, req['user'], payload, file?.filename);
     }
 };
 exports.StudentsController = StudentsController;
@@ -210,6 +214,41 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], StudentsController.prototype, "deleteStudent", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: `${client_1.Role.STUDENT}`
+    }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
+    (0, role_1.Roles)(client_1.Role.STUDENT),
+    (0, swagger_1.ApiConsumes)("multipart/form-data"),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: 'object',
+            properties: {
+                title: { type: "string", example: "My answer to the homework" },
+                file: { type: 'string', format: 'binary' },
+            }
+        }
+    }),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)("file", {
+        storage: (0, multer_1.diskStorage)({
+            destination: "./src/uploads/answers",
+            filename: (req, file, cb) => {
+                const filename = Date.now() + "." + file.mimetype.split("/")[1];
+                cb(null, filename);
+            }
+        })
+    })),
+    (0, common_1.Post)("homeworkAnswer/:homeworkId"),
+    __param(0, (0, common_1.Param)("homeworkId", common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Body)()),
+    __param(3, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Request,
+        createHomeworkAnswer_dto_1.CreateHomeworkAnswerDto, Object]),
+    __metadata("design:returntype", void 0)
+], StudentsController.prototype, "createHomeworkAnswer", null);
 exports.StudentsController = StudentsController = __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('students'),

@@ -120,24 +120,35 @@ let HomeworkService = class HomeworkService {
         };
     }
     async getGroupHomework(groupId, currentUser) {
-        const group = await this.prisma.group.findMany({
+        const group = await this.prisma.group.findFirst({
             where: {
-                id: groupId
+                id: groupId,
             },
-            include: {
-                lessons: {
+        });
+        if (!group) {
+            throw new common_1.NotFoundException("Group not found with this id");
+        }
+        const homeworks = await this.prisma.homework.findMany({
+            where: {
+                group_id: groupId,
+            },
+            orderBy: {
+                created_at: "desc",
+            },
+            select: {
+                id: true,
+                title: true,
+                file: true,
+                created_at: true,
+                lesson_id: true,
+                lesson: {
                     select: {
                         id: true,
                         topic: true,
                         created_at: true,
-                        homework: {
-                            select: {
-                                created_at: true,
-                            }
-                        }
-                    }
-                }
-            }
+                    },
+                },
+            },
         });
         const homeworkPending = await this.prisma.homeworkAnswerStudent.findMany({
             where: {
@@ -145,7 +156,7 @@ let HomeworkService = class HomeworkService {
             },
             select: {
                 id: true,
-            }
+            },
         });
         const homeworkAccepted = await this.prisma.homeworkResult.findMany({
             where: {
@@ -153,7 +164,7 @@ let HomeworkService = class HomeworkService {
             },
             select: {
                 id: true,
-            }
+            },
         });
         const existStudentInGroup = await this.prisma.studentGroup.findMany({
             where: {
@@ -163,16 +174,23 @@ let HomeworkService = class HomeworkService {
                 students: {
                     select: {
                         id: true,
-                    }
-                }
-            }
+                    },
+                },
+            },
         });
-        const groupFormated = group[0].lessons.map(el => {
+        const groupFormated = homeworks.map((el) => {
             return {
-                id: el.id,
-                topic: el.topic,
-                created_at: el.created_at,
-                homework: el.homework,
+                id: el.lesson?.id ?? el.lesson_id,
+                topic: el.lesson?.topic ?? el.title,
+                created_at: el.lesson?.created_at ?? el.created_at,
+                homework: [
+                    {
+                        id: el.id,
+                        title: el.title,
+                        file: el.file,
+                        created_at: el.created_at,
+                    },
+                ],
             };
         });
         return {
@@ -182,7 +200,153 @@ let HomeworkService = class HomeworkService {
                 homeworkPending: homeworkPending.length,
                 homeworkAccepted: homeworkAccepted.length,
                 existStudentInGroup: existStudentInGroup.length,
+            },
+        };
+    }
+    async getHomeworkResults(groupId, homeworkId, status) {
+        if (status == client_1.HomeworkStatus.PENDING || status == client_1.HomeworkStatus.CHECKED) {
+            const studentResults = await this.prisma.homeworkAnswerStudent.findMany({
+                where: {
+                    homeworkStatus: status,
+                    homework_id: homeworkId,
+                },
+                orderBy: {
+                    created_at: "desc",
+                },
+                select: {
+                    created_at: true,
+                    students: {
+                        select: {
+                            id: true,
+                            full_name: true,
+                        },
+                    },
+                },
+            });
+            return {
+                success: true,
+                data: studentResults.map((el) => ({
+                    ...el.students,
+                    sent_at: el.created_at,
+                })),
+            };
+        }
+        else if (status == client_1.HomeworkStatus.ACCEPTED ||
+            status == client_1.HomeworkStatus.REJECTED) {
+            const studentResults = await this.prisma.homeworkResult.findMany({
+                where: {
+                    homework_id: homeworkId,
+                    group_id: groupId,
+                    homeworkStatus: status,
+                },
+                orderBy: {
+                    created_at: "desc",
+                },
+                select: {
+                    homeworkAnswerStudent: {
+                        select: {
+                            created_at: true,
+                            students: {
+                                select: {
+                                    id: true,
+                                    full_name: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+            return {
+                success: true,
+                data: studentResults.map((el) => ({
+                    ...el.homeworkAnswerStudent.students,
+                    sent_at: el.homeworkAnswerStudent.created_at,
+                })),
+            };
+        }
+        const studentIds = await this.prisma.studentGroup.findMany({
+            where: {
+                group_id: groupId,
+            },
+            select: {
+                student_id: true,
+            },
+        });
+        const allStudentIds = studentIds.map((el) => el.student_id);
+        const topshirganTalabalar = await this.prisma.homeworkAnswerStudent.findMany({
+            where: {
+                homework_id: homeworkId,
             }
+        });
+        let topshirganTalabalarIds = topshirganTalabalar.map((el) => el.student_id);
+        const topshirmaganTalabalar = await this.prisma.studentGroup.findMany({
+            where: {
+                group_id: groupId,
+                student_id: {
+                    notIn: topshirganTalabalarIds,
+                },
+            },
+            include: {
+                students: {
+                    select: {
+                        id: true,
+                        full_name: true,
+                    },
+                },
+            },
+        });
+        return {
+            success: true,
+            data: topshirmaganTalabalar.map((el) => el.students),
+        };
+    }
+    async getGroupHomeworkStudentResult(groupId, homeworkId, studentId) {
+        const studentResult = await this.prisma.homeworkAnswerStudent.findFirst({
+            where: {
+                homework_id: homeworkId,
+                student_id: studentId,
+            },
+            select: {
+                id: true,
+                title: true,
+                file: true,
+                students: {
+                    select: {
+                        id: true,
+                        full_name: true,
+                    },
+                },
+            },
+        });
+        return {
+            success: true,
+            data: studentResult,
+        };
+    }
+    async checkHomeworkResult(groupId, homeworkId, payload, currentUser) {
+        await this.prisma.homeworkResult.create({
+            data: {
+                homework_answer_id: payload.homework_answer_id,
+                group_id: groupId,
+                homework_id: homeworkId,
+                grade: payload.grade,
+                title: payload.title,
+                teacher_id: currentUser.role == client_1.Role.TEACHER ? currentUser.id : null,
+                user_id: currentUser.role != client_1.Role.ADMIN ? currentUser.id : null,
+                homeworkStatus: payload.grade >= 60 ? client_1.HomeworkStatus.ACCEPTED : client_1.HomeworkStatus.REJECTED,
+            },
+        });
+        await this.prisma.homeworkAnswerStudent.update({
+            where: {
+                id: payload.homework_answer_id,
+            },
+            data: {
+                homeworkStatus: client_1.HomeworkStatus.CHECKED,
+            },
+        });
+        return {
+            success: true,
+            message: "Homework checked",
         };
     }
 };

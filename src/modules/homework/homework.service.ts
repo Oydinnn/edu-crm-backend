@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -6,6 +7,9 @@ import {
 import { PrismaService } from "src/core/database/prisma.service";
 import { CreateHomeworkDto } from "./dto/create.dto";
 import { HomeworkStatus, Role } from "@prisma/client";
+import { CreateHomeworkAnswerDto } from "../students/dto/createHomeworkAnswer.dto";
+import { stat } from "node:fs";
+import { HomeworkResultDto } from "./dto/homework.result.dto";
 
 @Injectable()
 export class HomeworkService {
@@ -133,77 +137,268 @@ export class HomeworkService {
     };
   }
 
-  async getGroupHomework(groupId: number, currentUser:{id:number, role: Role}){
-    const group = await this.prisma.group.findMany({
-      where:{
-        id: groupId
+  async getGroupHomework(
+    groupId: number,
+    currentUser: { id: number; role: Role },
+  ) {
+    const group = await this.prisma.group.findFirst({
+      where: {
+        id: groupId,
       },
-      include:{
-        lessons:{
-          select:{
-            id:true,
+    });
+
+    if (!group) {
+      throw new NotFoundException("Group not found with this id");
+    }
+
+    const homeworks = await this.prisma.homework.findMany({
+      where: {
+        group_id: groupId,
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        file: true,
+        created_at: true,
+        lesson_id: true,
+        lesson: {
+          select: {
+            id: true,
             topic: true,
             created_at: true,
-            homework:{
-              select:{
-                created_at: true,
-            }
-            
-          }
-        }
-      }}
-    })
+          },
+        },
+      },
+    });
 
     const homeworkPending = await this.prisma.homeworkAnswerStudent.findMany({
-      where:{
+      where: {
         homeworkStatus: HomeworkStatus.PENDING,
       },
-        select:{
-          id: true,
-        }
+      select: {
+        id: true,
+      },
     });
 
     const homeworkAccepted = await this.prisma.homeworkResult.findMany({
-      where:{
+      where: {
         homeworkStatus: HomeworkStatus.ACCEPTED,
       },
-        select:{
-          id: true,
-        }
+      select: {
+        id: true,
+      },
     });
 
     const existStudentInGroup = await this.prisma.studentGroup.findMany({
       where: {
         group_id: groupId,
       },
-      select:{
-        students:{
-          select:{
+      select: {
+        students: {
+          select: {
             id: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
-    const groupFormated = group[0].lessons.map(el => {
+    const groupFormated = homeworks.map((el) => {
       return {
-        id: el.id,
-        topic: el.topic,
-        created_at: el.created_at,
-        homework: el.homework,
-      }})
+        id: el.lesson?.id ?? el.lesson_id,
+        topic: el.lesson?.topic ?? el.title,
+        created_at: el.lesson?.created_at ?? el.created_at,
+        homework: [
+          {
+            id: el.id,
+            title: el.title,
+            file: el.file,
+            created_at: el.created_at,
+          },
+        ],
+      };
+    });
+
+    return {
+      success: true,
+      data: {
+        groupFormated,
+        homeworkPending: homeworkPending.length,
+        homeworkAccepted: homeworkAccepted.length,
+        existStudentInGroup: existStudentInGroup.length,
+        // studentsInGroup: existStudentInGroup.length
+      },
+    };
+  }
+
+  async getHomeworkResults(
+    groupId: number,
+    homeworkId: number,
+    status?: HomeworkStatus,
+  ) {
+    if (status == HomeworkStatus.PENDING || status == HomeworkStatus.CHECKED) {
+      const studentResults = await this.prisma.homeworkAnswerStudent.findMany({
+        where: {
+          homeworkStatus: status,
+          homework_id: homeworkId,
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+        select: {
+          created_at: true,
+          students: {
+            select: {
+              id: true,
+              full_name: true,
+            },
+          },
+        },
+      });
 
       return {
         success: true,
-        data: { 
-          groupFormated,
-          homeworkPending: homeworkPending.length,
-          homeworkAccepted: homeworkAccepted.length,
-          existStudentInGroup: existStudentInGroup.length,
-          // studentsInGroup: existStudentInGroup.length
-        }
-      }
+        data: studentResults.map((el) => ({
+          ...el.students,
+          sent_at: el.created_at,
+        })),
+      };
+    } else if (
+      status == HomeworkStatus.ACCEPTED ||
+      status == HomeworkStatus.REJECTED
+    ) {
+      const studentResults = await this.prisma.homeworkResult.findMany({
+        where: {
+          homework_id: homeworkId,
+          group_id: groupId,
+          homeworkStatus: status,
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+        select: {
+          homeworkAnswerStudent: {
+            select: {
+              created_at: true,
+              students: {
+                select: {
+                  id: true,
+                  full_name: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
-   
+      return {
+        success: true,
+        data: studentResults.map((el) => ({
+          ...el.homeworkAnswerStudent.students,
+          sent_at: el.homeworkAnswerStudent.created_at,
+        })),
+      };
+    }
+
+    const studentIds = await this.prisma.studentGroup.findMany({
+      where: {
+        group_id: groupId,
+      },
+      select: {
+        student_id: true, 
+          },
+    });
+
+    const allStudentIds = studentIds.map((el) => el.student_id);
+    const topshirganTalabalar = await this.prisma.homeworkAnswerStudent.findMany({
+      where: {
+        homework_id: homeworkId,
+      }     
+    });
+
+    let topshirganTalabalarIds = topshirganTalabalar.map((el) => el.student_id);
+    const topshirmaganTalabalar = await this.prisma.studentGroup.findMany({
+      where: {
+        group_id: groupId,
+        student_id: {
+          notIn: topshirganTalabalarIds,
+        },
+      },
+      include: {
+    students: {  // student modelini qo'shish
+      select: {
+        id: true,
+        full_name: true,
+      },
+    },
+  },
+    });
+
+    return {
+      success: true,
+      data: topshirmaganTalabalar.map((el) => el.students),
+    };
   }
-}
+
+  async getGroupHomeworkStudentResult(
+    groupId: number,
+    homeworkId: number,
+    studentId: number,
+  ) {
+    const studentResult = await this.prisma.homeworkAnswerStudent.findFirst({
+      where: {
+        homework_id: homeworkId,
+        student_id: studentId,
+      },
+      select: {
+        id: true,
+        title: true,  
+        file: true,
+        students: {
+          select: {
+            id: true,
+            full_name: true,
+          },    
+        },
+      },
+    });
+    return {
+      success: true,
+      data: studentResult,
+    };
+  }
+
+
+  async checkHomeworkResult(
+    groupId: number,
+    homeworkId: number,
+    payload: HomeworkResultDto,
+    currentUser: { id: number; role: Role },
+  ) {
+    await this.prisma.homeworkResult.create({
+      data: {
+        homework_answer_id: payload.homework_answer_id,
+        group_id: groupId,
+        homework_id: homeworkId,
+        grade: payload.grade,
+        title: payload.title,
+        teacher_id: currentUser.role == Role.TEACHER ? currentUser.id : null,
+        user_id: currentUser.role != Role.ADMIN ? currentUser.id : null,
+        homeworkStatus: payload.grade >= 60 ? HomeworkStatus.ACCEPTED : HomeworkStatus.REJECTED,
+      },
+    })
+    await this.prisma.homeworkAnswerStudent.update({
+      where: {
+        id: payload.homework_answer_id,
+      },
+      data: {
+        homeworkStatus: HomeworkStatus.CHECKED,
+      },
+    })
+    return {
+      success: true,
+      message: "Homework checked",
+    };
+  }}

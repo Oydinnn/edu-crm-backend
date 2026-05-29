@@ -5,6 +5,7 @@ import { PaginationDto } from "./dto/pagination.dto";
 import { EmailService } from "src/common/email/email.service";
 import { filterDto } from "./dto/search";
 import { UpdateStudentDto } from "./dto/update.dto";
+import { CreateHomeworkAnswerDto } from "./dto/createHomeworkAnswer.dto";
 export declare class StudentsService {
     private prisma;
     private emailService;
@@ -181,5 +182,11 @@ export declare class StudentsService {
             photo: string | null;
             full_name: string;
         }[];
+    }>;
+    createHomeworkAnswer(homeworkId: number, currentUser: {
+        id: number;
+    }, payload: CreateHomeworkAnswerDto, filename?: string): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

@@ -153,6 +153,7 @@ model Group {
   lessons       Lesson[]
   homework      Homework[]
   groupTeachers GroupTeacher[]
+  homeworkResults HomeworkResult[]
 }
 
 model GroupTeacher {
@@ -231,6 +232,7 @@ model Homework {
   users                  User?                   @relation(fields: [user_id], references: [id])
   groups                 Group                   @relation(fields: [group_id], references: [id])
   homeworkAnswerStudents HomeworkAnswerStudent[]
+  homeworkResults HomeworkResult[]
 }
 
 model HomeworkAnswerStudent {
@@ -254,9 +256,10 @@ model HomeworkResult {
   homework_answer_id Int
   teacher_id         Int?
   user_id            Int?
+  group_id           Int
+  homework_id        Int
   grade              Int
   title              String
-  status             Boolean
   homeworkStatus     HomeworkStatus
 
   created_at DateTime @default(now())
@@ -265,4 +268,6 @@ model HomeworkResult {
   teachers              Teacher?              @relation(fields: [teacher_id], references: [id])
   users                 User?                 @relation(fields: [user_id], references: [id])
   homeworkAnswerStudent HomeworkAnswerStudent @relation(fields: [homework_answer_id], references: [id])
+  groups                Group                 @relation(fields: [group_id], references: [id])
+  homework              Homework              @relation(fields: [homework_id], references: [id])
 }

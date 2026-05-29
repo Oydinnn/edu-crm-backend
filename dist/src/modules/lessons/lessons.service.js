@@ -28,16 +28,6 @@ let LessonsService = class LessonsService {
         if (!existGroup) {
             throw new common_1.NotFoundException("Group not found with this id");
         }
-        const existGroupStudent = await this.prisma.studentGroup.findFirst({
-            where: {
-                group_id: groupId,
-                student_id: currentUser.id,
-                status: client_1.Status.active,
-            },
-        });
-        if (!existGroupStudent) {
-            throw new common_1.BadRequestException("Group does not belong to this Student");
-        }
         const groupLessons = await this.prisma.lesson.findMany({
             where: {
                 group_id: groupId,

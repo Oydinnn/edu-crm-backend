@@ -4,6 +4,7 @@ import { CreateStudentDto } from './dto/create.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { UpdateStudentDto } from './dto/update.dto';
 import { filterDto } from './dto/search';
+import { CreateHomeworkAnswerDto } from './dto/createHomeworkAnswer.dto';
 export declare class StudentsController {
     private readonly studentService;
     constructor(studentService: StudentsService);
@@ -165,6 +166,10 @@ export declare class StudentsController {
         birth_date: Date;
     }>;
     deleteStudent(id: number): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    createHomeworkAnswer(homeworkId: number, req: Request, payload: CreateHomeworkAnswerDto, file?: Express.Multer.File): Promise<{
         success: boolean;
         message: string;
     }>;

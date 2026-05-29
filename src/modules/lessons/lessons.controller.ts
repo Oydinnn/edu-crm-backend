@@ -13,10 +13,10 @@ export class LessonsController {
     constructor(private readonly lessonService: LessonsService){}
 
     @ApiOperation({
-        summary:`${Role.STUDENT}`
+        summary:`${Role.STUDENT}, ${Role.ADMIN}, ${Role.SUPERADMIN}, ${Role.TEACHER}`
     })
     @UseGuards(AuthGuard,RolesGuard)
-    @Roles(Role.STUDENT)
+    @Roles(Role.STUDENT, Role.ADMIN, Role.SUPERADMIN, Role.TEACHER)
     @Get("my/group/:groupId")
     getMyGroupLessons(
         @Param("groupId", ParseIntPipe) groupId : number,

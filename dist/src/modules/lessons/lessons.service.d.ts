@@ -24,8 +24,8 @@ export declare class LessonsService {
             description: string | null;
             group_id: number;
             teacher_id: number | null;
-            topic: string;
             user_id: number | null;
+            topic: string;
         }[];
     }>;
     createLesson(payload: CreateLessonDto, currentUser: {

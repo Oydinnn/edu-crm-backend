@@ -354,6 +354,7 @@ import { log } from "console";
 import { logger } from "handlebars";
 import { filterDto } from "./dto/search";
 import { UpdateStudentDto } from "./dto/update.dto";
+import { CreateHomeworkAnswerDto } from "./dto/createHomeworkAnswer.dto";
 
 @Injectable()
 export class StudentsService {
@@ -687,4 +688,42 @@ export class StudentsService {
       data: students,
     };
   }
+
+
+
+   async createHomeworkAnswer(homeworkId: number, currentUser:{id:number}, payload: CreateHomeworkAnswerDto, filename?: string){
+    const existHomework = await this.prisma.homework.findFirst({
+      where:{
+        id: homeworkId,
+      }
+    })
+    if(!existHomework){
+      throw new NotFoundException("Homework not found with this id")
+    }
+
+    const existHomeworkAnswer = await this.prisma.homeworkAnswerStudent.findFirst({
+      where:{
+        homework_id: homeworkId,
+        student_id: currentUser.id,
+      }
+    })
+
+    if(existHomeworkAnswer){  
+      throw new ConflictException("You have already answered this homework")
+    }
+
+    await this.prisma.homeworkAnswerStudent.create({
+      data:{
+        homework_id: homeworkId,
+        student_id: currentUser.id,
+        title: payload.title,
+        file: filename??null,
+      }
+    })
+
+    return {
+      success: true,
+      message: "Homework answer recorded"
+    }
+}
 }

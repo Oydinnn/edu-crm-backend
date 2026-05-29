@@ -11,6 +11,7 @@ import { diskStorage } from 'multer';
 import { PaginationDto } from './dto/pagination.dto';
 import { UpdateStudentDto } from './dto/update.dto';
 import { filterDto } from './dto/search';
+import { CreateHomeworkAnswerDto } from './dto/createHomeworkAnswer.dto';
 
 @ApiBearerAuth()
 @Controller('students')
@@ -194,71 +195,40 @@ export class StudentsController {
     }
 
 
-
+    @ApiOperation({
+        summary: `${Role.STUDENT}`
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.STUDENT)
+     @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                title: { type: "string", example: "My answer to the homework" },
+                file: { type: 'string', format: 'binary' },
+            }
+        }
+    })
+    @UseInterceptors(FileInterceptor("file", {
+        storage: diskStorage({
+            destination: "./src/uploads/answers",
+            filename: (req, file, cb) => {
+                const filename = Date.now() + "." + file.mimetype.split("/")[1]
+                cb(null, filename)
+            }
+        })
+    }))
+    @Post("homeworkAnswer/:homeworkId")
+    createHomeworkAnswer(
+        @Param("homeworkId", ParseIntPipe) homeworkId : number,
+        @Req() req : Request,
+        @Body() payload: CreateHomeworkAnswerDto,
+        @UploadedFile() file?: Express.Multer.File
+    ){
+        return this.studentService.createHomeworkAnswer(homeworkId, req['user'], payload, file?.filename)
+    }
 
 
 }
 
-
-
-
-// src/modules/students/students.controller.ts
-// import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Req, Query } from '@nestjs/common';
-// import { StudentsService } from './students.service';
-// import { CreateStudentDto } from './dto/create.dto';
-// import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
-// import { RolesGuard } from 'src/common/guards/role.guard';
-// import { Roles } from 'src/common/decorators/role';
-// import { Role } from '@prisma/client';
-// import { PaginationDto } from './dto/pagination.dto';
-// import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-
-// @ApiBearerAuth()
-// @Controller('students')
-// export class StudentsController {
-//     constructor(private readonly studentService: StudentsService) {}
-
-//     @UseGuards(AuthGuard)
-//     @Get('my-groups')
-//     getMyGroups(@Req() req: any) {
-//         return this.studentService.getMyGroups(req['user']);
-//     }
-    
-//     @ApiOperation({
-//             summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`
-//         })
-//     @UseGuards(AuthGuard, RolesGuard)
-//     @Roles(Role.SUPERADMIN, Role.ADMIN)
-//     @Get()
-//     getAllStudents(@Query() pagination: PaginationDto) {
-//         return this.studentService.getAllStudents(pagination);
-//     }
-
-//     @UseGuards(AuthGuard, RolesGuard)
-//     @Roles(Role.SUPERADMIN, Role.ADMIN)
-//     @Post()
-//     createStudent(@Body() payload: CreateStudentDto) {
-//         return this.studentService.createStudent(payload);
-//     }
-
-//     @UseGuards(AuthGuard, RolesGuard)
-//     @Roles(Role.SUPERADMIN, Role.ADMIN)
-//     @Get(':id')
-//     getStudentById(@Param('id') id: string) {
-//         return this.studentService.getStudentById(+id);
-//     }
-
-//     @UseGuards(AuthGuard, RolesGuard)
-//     @Roles(Role.SUPERADMIN, Role.ADMIN)
-//     @Patch(':id')
-//     updateStudent(@Param('id') id: string, @Body() payload: any) {
-//         return this.studentService.updateStudent(+id, payload);
-//     }
-
-//     @UseGuards(AuthGuard, RolesGuard)
-//     @Roles(Role.SUPERADMIN, Role.ADMIN)
-//     @Delete(':id')
-//     deleteStudent(@Param('id') id: string) {
-//         return this.studentService.deleteStudent(+id);
-//     }
-// }

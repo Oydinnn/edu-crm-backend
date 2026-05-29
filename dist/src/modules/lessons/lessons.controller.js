@@ -39,10 +39,10 @@ let LessonsController = class LessonsController {
 exports.LessonsController = LessonsController;
 __decorate([
     (0, swagger_1.ApiOperation)({
-        summary: `${client_1.Role.STUDENT}`
+        summary: `${client_1.Role.STUDENT}, ${client_1.Role.ADMIN}, ${client_1.Role.SUPERADMIN}, ${client_1.Role.TEACHER}`
     }),
     (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
-    (0, role_1.Roles)(client_1.Role.STUDENT),
+    (0, role_1.Roles)(client_1.Role.STUDENT, client_1.Role.ADMIN, client_1.Role.SUPERADMIN, client_1.Role.TEACHER),
     (0, common_1.Get)("my/group/:groupId"),
     __param(0, (0, common_1.Param)("groupId", common_1.ParseIntPipe)),
     __param(1, (0, common_1.Req)()),

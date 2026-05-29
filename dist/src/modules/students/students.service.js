@@ -329,6 +329,37 @@ let StudentsService = class StudentsService {
             data: students,
         };
     }
+    async createHomeworkAnswer(homeworkId, currentUser, payload, filename) {
+        const existHomework = await this.prisma.homework.findFirst({
+            where: {
+                id: homeworkId,
+            }
+        });
+        if (!existHomework) {
+            throw new common_1.NotFoundException("Homework not found with this id");
+        }
+        const existHomeworkAnswer = await this.prisma.homeworkAnswerStudent.findFirst({
+            where: {
+                homework_id: homeworkId,
+                student_id: currentUser.id,
+            }
+        });
+        if (existHomeworkAnswer) {
+            throw new common_1.ConflictException("You have already answered this homework");
+        }
+        await this.prisma.homeworkAnswerStudent.create({
+            data: {
+                homework_id: homeworkId,
+                student_id: currentUser.id,
+                title: payload.title,
+                file: filename ?? null,
+            }
+        });
+        return {
+            success: true,
+            message: "Homework answer recorded"
+        };
+    }
 };
 exports.StudentsService = StudentsService;
 exports.StudentsService = StudentsService = __decorate([

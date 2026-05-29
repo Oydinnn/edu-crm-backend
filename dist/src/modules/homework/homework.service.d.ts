@@ -1,6 +1,7 @@
 import { PrismaService } from "src/core/database/prisma.service";
 import { CreateHomeworkDto } from "./dto/create.dto";
-import { Role } from "@prisma/client";
+import { HomeworkStatus, Role } from "@prisma/client";
+import { HomeworkResultDto } from "./dto/homework.result.dto";
 export declare class HomeworkService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -15,11 +16,11 @@ export declare class HomeworkService {
             created_at: Date;
             update_at: Date;
             user: {
-                id: number;
-                phone: string;
-                photo: string | null;
                 first_name: string;
                 last_name: string;
+                phone: string;
+                id: number;
+                photo: string | null;
             } | null;
             teacher?: undefined;
         } | {
@@ -29,10 +30,10 @@ export declare class HomeworkService {
             created_at: Date;
             update_at: Date;
             teacher: {
-                id: number;
-                full_name: string;
                 phone: string;
+                id: number;
                 photo: string | null;
+                full_name: string;
             };
             user?: undefined;
         })[];
@@ -41,14 +42,14 @@ export declare class HomeworkService {
         success: boolean;
         data: {
             id: number;
+            created_at: Date;
+            update_at: Date;
+            title: string;
+            file: string | null;
+            group_id: number;
             teacher_id: number | null;
             user_id: number | null;
             lesson_id: number;
-            group_id: number;
-            title: string;
-            file: string | null;
-            created_at: Date;
-            update_at: Date;
         }[];
     }>;
     createHomework(payload: CreateHomeworkDto, currentUser: {
@@ -69,6 +70,9 @@ export declare class HomeworkService {
                 topic: string;
                 created_at: Date;
                 homework: {
+                    id: number;
+                    title: string;
+                    file: string | null;
                     created_at: Date;
                 }[];
             }[];
@@ -76,5 +80,31 @@ export declare class HomeworkService {
             homeworkAccepted: number;
             existStudentInGroup: number;
         };
+    }>;
+    getHomeworkResults(groupId: number, homeworkId: number, status?: HomeworkStatus): Promise<{
+        success: boolean;
+        data: {
+            id: number;
+            full_name: string;
+        }[];
+    }>;
+    getGroupHomeworkStudentResult(groupId: number, homeworkId: number, studentId: number): Promise<{
+        success: boolean;
+        data: {
+            id: number;
+            students: {
+                id: number;
+                full_name: string;
+            };
+            title: string;
+            file: string | null;
+        } | null;
+    }>;
+    checkHomeworkResult(groupId: number, homeworkId: number, payload: HomeworkResultDto, currentUser: {
+        id: number;
+        role: Role;
+    }): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

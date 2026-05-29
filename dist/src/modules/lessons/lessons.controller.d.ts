@@ -21,8 +21,8 @@ export declare class LessonsController {
             description: string | null;
             group_id: number;
             teacher_id: number | null;
-            topic: string;
             user_id: number | null;
+            topic: string;
         }[];
     }>;
     createLesson(payload: CreateLessonDto, req: Request): Promise<{
