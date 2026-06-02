@@ -74,6 +74,9 @@ export declare class HomeworkService {
                     title: string;
                     file: string | null;
                     created_at: Date;
+                    student_count: number;
+                    homeworkPending: number;
+                    homeworkAccepted: number;
                 }[];
             }[];
             homeworkPending: number;
@@ -92,6 +95,7 @@ export declare class HomeworkService {
         success: boolean;
         data: {
             id: number;
+            created_at: Date;
             students: {
                 id: number;
                 full_name: string;

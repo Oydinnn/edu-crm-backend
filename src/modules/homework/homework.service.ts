@@ -171,41 +171,30 @@ export class HomeworkService {
             created_at: true,
           },
         },
-      },
-    });
-
-    const homeworkPending = await this.prisma.homeworkAnswerStudent.findMany({
-      where: {
-        homeworkStatus: HomeworkStatus.PENDING,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    const homeworkAccepted = await this.prisma.homeworkResult.findMany({
-      where: {
-        homeworkStatus: HomeworkStatus.ACCEPTED,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    const existStudentInGroup = await this.prisma.studentGroup.findMany({
-      where: {
-        group_id: groupId,
-      },
-      select: {
-        students: {
+        homeworkAnswerStudents: {
           select: {
             id: true,
+            homeworkStatus: true,
           },
         },
       },
     });
 
+    const existStudentInGroup = await this.prisma.studentGroup.count({
+      where: {
+        group_id: groupId,
+      },
+    });
+
     const groupFormated = homeworks.map((el) => {
+      const pendingCount = el.homeworkAnswerStudents.filter(
+        (ans) => ans.homeworkStatus === HomeworkStatus.PENDING,
+      ).length;
+
+      const checkedCount = el.homeworkAnswerStudents.filter(
+        (ans) => ans.homeworkStatus === HomeworkStatus.CHECKED,
+      ).length;
+
       return {
         id: el.lesson?.id ?? el.lesson_id,
         topic: el.lesson?.topic ?? el.title,
@@ -216,6 +205,9 @@ export class HomeworkService {
             title: el.title,
             file: el.file,
             created_at: el.created_at,
+            student_count: existStudentInGroup,
+            homeworkPending: pendingCount,
+            homeworkAccepted: checkedCount,
           },
         ],
       };
@@ -225,10 +217,9 @@ export class HomeworkService {
       success: true,
       data: {
         groupFormated,
-        homeworkPending: homeworkPending.length,
-        homeworkAccepted: homeworkAccepted.length,
-        existStudentInGroup: existStudentInGroup.length,
-        // studentsInGroup: existStudentInGroup.length
+        homeworkPending: 0, // Fallback/Compatibility with general summary if needed
+        homeworkAccepted: 0,
+        existStudentInGroup,
       },
     };
   }
@@ -356,6 +347,7 @@ export class HomeworkService {
         id: true,
         title: true,  
         file: true,
+        created_at: true,
         students: {
           select: {
             id: true,

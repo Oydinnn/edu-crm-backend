@@ -148,37 +148,22 @@ let HomeworkService = class HomeworkService {
                         created_at: true,
                     },
                 },
-            },
-        });
-        const homeworkPending = await this.prisma.homeworkAnswerStudent.findMany({
-            where: {
-                homeworkStatus: client_1.HomeworkStatus.PENDING,
-            },
-            select: {
-                id: true,
-            },
-        });
-        const homeworkAccepted = await this.prisma.homeworkResult.findMany({
-            where: {
-                homeworkStatus: client_1.HomeworkStatus.ACCEPTED,
-            },
-            select: {
-                id: true,
-            },
-        });
-        const existStudentInGroup = await this.prisma.studentGroup.findMany({
-            where: {
-                group_id: groupId,
-            },
-            select: {
-                students: {
+                homeworkAnswerStudents: {
                     select: {
                         id: true,
+                        homeworkStatus: true,
                     },
                 },
             },
         });
+        const existStudentInGroup = await this.prisma.studentGroup.count({
+            where: {
+                group_id: groupId,
+            },
+        });
         const groupFormated = homeworks.map((el) => {
+            const pendingCount = el.homeworkAnswerStudents.filter((ans) => ans.homeworkStatus === client_1.HomeworkStatus.PENDING).length;
+            const checkedCount = el.homeworkAnswerStudents.filter((ans) => ans.homeworkStatus === client_1.HomeworkStatus.CHECKED).length;
             return {
                 id: el.lesson?.id ?? el.lesson_id,
                 topic: el.lesson?.topic ?? el.title,
@@ -189,6 +174,9 @@ let HomeworkService = class HomeworkService {
                         title: el.title,
                         file: el.file,
                         created_at: el.created_at,
+                        student_count: existStudentInGroup,
+                        homeworkPending: pendingCount,
+                        homeworkAccepted: checkedCount,
                     },
                 ],
             };
@@ -197,9 +185,9 @@ let HomeworkService = class HomeworkService {
             success: true,
             data: {
                 groupFormated,
-                homeworkPending: homeworkPending.length,
-                homeworkAccepted: homeworkAccepted.length,
-                existStudentInGroup: existStudentInGroup.length,
+                homeworkPending: 0,
+                homeworkAccepted: 0,
+                existStudentInGroup,
             },
         };
     }
@@ -310,6 +298,7 @@ let HomeworkService = class HomeworkService {
                 id: true,
                 title: true,
                 file: true,
+                created_at: true,
                 students: {
                     select: {
                         id: true,

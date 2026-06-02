@@ -47,6 +47,7 @@ export declare class HomeworkController {
         success: boolean;
         data: {
             id: number;
+            created_at: Date;
             students: {
                 id: number;
                 full_name: string;
@@ -89,6 +90,9 @@ export declare class HomeworkController {
                     title: string;
                     file: string | null;
                     created_at: Date;
+                    student_count: number;
+                    homeworkPending: number;
+                    homeworkAccepted: number;
                 }[];
             }[];
             homeworkPending: number;

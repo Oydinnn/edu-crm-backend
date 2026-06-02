@@ -197,6 +197,7 @@ model Lesson {
   users       User?        @relation(fields: [user_id], references: [id])
   homework    Homework[]
   attendances Attendance[]
+  lessonVideos LessonVideo[]
 }
 
 model Attendance {
@@ -270,4 +271,17 @@ model HomeworkResult {
   homeworkAnswerStudent HomeworkAnswerStudent @relation(fields: [homework_answer_id], references: [id])
   groups                Group                 @relation(fields: [group_id], references: [id])
   homework              Homework              @relation(fields: [homework_id], references: [id])
+}
+
+model LessonVideo{
+  id          Int     @id @default(autoincrement())
+  lesson_id   Int
+  group_id    Int
+  originalname String
+  video_url   String
+  size_mb     Float
+  created_at  DateTime @default(now())
+  update_at   DateTime @updatedAt
+
+  lesson Lesson @relation(fields: [lesson_id], references: [id])
 }

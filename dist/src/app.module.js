@@ -26,6 +26,7 @@ const attendance_module_1 = require("./modules/attendance/attendance.module");
 const homework_module_1 = require("./modules/homework/homework.module");
 const seeder_module_1 = require("./common/seed/seeder.module");
 const email_module_1 = require("./common/email/email.module");
+const files_module_1 = require("./modules/files/files.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -77,7 +78,8 @@ exports.AppModule = AppModule = __decorate([
             lessons_module_1.LessonsModule,
             attendance_module_1.AttendanceModule,
             homework_module_1.HomeworkModule,
-            seeder_module_1.SeederModule
+            seeder_module_1.SeederModule,
+            files_module_1.FilesModule
         ],
     })
 ], AppModule);

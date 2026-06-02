@@ -62,6 +62,7 @@ import { AttendanceModule } from './modules/attendance/attendance.module';
 import { HomeworkModule } from './modules/homework/homework.module';
 import { SeederModule } from './common/seed/seeder.module';
 import { EmailModule } from './common/email/email.module';
+import { FilesModule } from './modules/files/files.module';
 
 @Module({
   imports: [
@@ -116,7 +117,8 @@ import { EmailModule } from './common/email/email.module';
     LessonsModule,
     AttendanceModule,
     HomeworkModule,
-    SeederModule
+    SeederModule,
+    FilesModule
   ],
 })
 export class AppModule { }
