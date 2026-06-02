@@ -14,7 +14,7 @@ export default class UserSeeder implements OnModuleInit{
   async onModuleInit() {
     const existSuperAdmin = await this.prisma.user.findUnique({
       where:{
-        phone: "+998975661099"
+        phone: "+998991234567"
       }
     })
 
@@ -26,9 +26,9 @@ export default class UserSeeder implements OnModuleInit{
       data:{
         first_name: "Superr",
         last_name: "Adminn",
-        phone:"+998975661099",
-        password: await bcrypt.hash("Benazir99!", 10) ,
-        email: "abdukhoshim99@gmail.com",
+        phone:"+998991234567",
+        password: await bcrypt.hash("991234567", 10) ,
+        email: "oydin6661@gmail.com",
         address: "Toshkent, Uzbekiston",
         role: Role.SUPERADMIN
       }
