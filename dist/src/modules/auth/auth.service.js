@@ -47,6 +47,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../core/database/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
 const jwt_1 = require("@nestjs/jwt");
+const client_1 = require("@prisma/client");
 let AuthService = class AuthService {
     prisma;
     jwtService;
@@ -55,49 +56,56 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async userLogin(payload) {
-        let user;
+        let user = null;
+        let userRole = null;
         const existUser = await this.prisma.user.findUnique({
             where: {
                 phone: payload.phone
             }
         });
-        if (!existUser) {
+        if (existUser) {
+            user = existUser;
+            user.role = existUser.role;
+        }
+        if (!user) {
             const existStudent = await this.prisma.student.findUnique({
                 where: {
                     phone: payload.phone
                 }
             });
-            if (!existStudent) {
-                const existTeacher = await this.prisma.teacher.findUnique({
-                    where: {
-                        phone: payload.phone
-                    }
-                });
-                if (!existTeacher) {
-                    throw new common_1.UnauthorizedException("Invalid phone or password");
-                }
-                user = existTeacher;
-                user.role = 'TEACHER';
+            if (existStudent) {
+                user = existStudent;
+                user.role = client_1.Role.STUDENT;
             }
-            user = existStudent;
-            user.role = 'STUDENT';
         }
-        else {
-            user = existUser;
+        if (!user) {
+            const existTeacher = await this.prisma.teacher.findUnique({
+                where: {
+                    phone: payload.phone
+                }
+            });
+            if (existTeacher) {
+                user = existTeacher;
+                user.role = client_1.Role.TEACHER;
+            }
+        }
+        if (!user) {
+            throw new common_1.UnauthorizedException("Telefon raqam yoki parol noto'g'ri");
         }
         const isMatch = await bcrypt.compare(payload.password, user.password);
         if (!isMatch) {
-            throw new common_1.UnauthorizedException("Invalid username or password");
+            throw new common_1.UnauthorizedException("Telefon raqam yoki parol noto'g'ri");
         }
         return {
             success: true,
-            message: "You're logged",
+            message: "Tizimga muvaffaqiyatli kirdingiz",
+            role: user.role,
             accessToken: this.jwtService.sign({
                 id: user.id,
-                email: user.email,
+                phone: user.phone,
+                email: user.email || null,
                 role: user.role
             }),
-            role: user.role
         };
     }
 };

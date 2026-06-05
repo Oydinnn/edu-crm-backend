@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { TeachersService } from './teachers.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
@@ -24,6 +24,19 @@ export class TeachersController {
         getAllTeachers() {
             return this.teacherService.getAllTeachers()
         }
+
+
+        @ApiOperation({
+            summary: `${Role.TEACHER},`
+        })
+        @UseGuards(AuthGuard, RolesGuard)
+        @Roles(Role.TEACHER)    
+        @Get('my/groups')
+        getMyGroups(@Req() req) {
+            return this.teacherService.getMyGroups(req.user.id)
+        }
+
+
     
         @ApiOperation({
             summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,

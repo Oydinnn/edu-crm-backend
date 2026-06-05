@@ -6,7 +6,7 @@ export declare class AuthController {
     userLogin(payload: LoginDto): Promise<{
         success: boolean;
         message: string;
+        role: import("@prisma/client").$Enums.Role | undefined;
         accessToken: string;
-        role: any;
     }>;
 }

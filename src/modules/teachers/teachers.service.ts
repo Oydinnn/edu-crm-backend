@@ -377,7 +377,7 @@ import { CreateTeacherDto } from "./dto/create.dto";
 import * as bcrypt from "bcrypt";
 import * as fs from "fs";
 import { EmailService } from "src/common/email/email.service";
-import { Status } from "@prisma/client";
+import { Status, TeacherGroupStatus } from "@prisma/client";
 import { UpdateTeacherDto } from "./dto/update.dto";
 import { generateRandomPassword } from "src/common/utills/generate-password";
 
@@ -436,6 +436,77 @@ export class TeachersService {
     return {
       success: true,
       data: formatedTeachers,
+    };
+  }
+
+  async getMyGroups(teacherId: number) {
+    // 1. O'qituvchining guruhlarini olish
+    const groups = await this.prisma.group.findMany({
+      where: {
+        groupTeachers: {
+          some: {
+            teacher_id: teacherId,
+            status: TeacherGroupStatus.active, // Faqat active statusdagi guruhlar  
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        max_student: true,
+        start_date: true,
+        start_time: true,
+        week_day: true,
+        status: true,
+        description: true,
+        courses: {
+          select: {
+            id: true,
+            name: true,
+            duration_month: true, // Kurs necha oy davom etishi
+            duration_hours: true, // Jami dars soatlari
+          },
+        },
+        rooms: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        studentGroups: {
+          select: {
+            students: {
+              select: {
+                _count: true,
+                id: true,
+                full_name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const dataFormatter = groups.map((el) => ({
+      id: el.id,
+      name: el.name,
+      max_student: el.max_student,
+      start_date: el.start_date,
+      start_time: el.start_time,
+      weekDay: el.week_day,
+      status: el.status,
+      description: el.description,
+      course: el.courses?.name || "Noma'lum",
+      course_duration_month: el.courses?.duration_month || 0,
+      course_duration_hours: el.courses?.duration_hours || 0,
+      room: el.rooms?.name || "Noma'lum",
+      students: el.studentGroups?.map((sg) => sg.students) || [],
+      student_count: el.studentGroups?.length || 0,
+    }));
+
+    return {
+      success: true,
+      data: dataFormatter,
     };
   }
 

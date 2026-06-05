@@ -26,8 +26,8 @@ export default class UserSeeder implements OnModuleInit{
       data:{
         first_name: "Superr",
         last_name: "Adminn",
-        phone:"+998991234567",
-        password: await bcrypt.hash("991234567", 10) ,
+        phone:"+998991119999",
+        password: await bcrypt.hash("991119999", 10) ,
         email: "oydin6661@gmail.com",
         address: "Toshkent, Uzbekiston",
         role: Role.SUPERADMIN

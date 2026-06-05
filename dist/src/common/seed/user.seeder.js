@@ -57,7 +57,7 @@ let UserSeeder = class UserSeeder {
     async onModuleInit() {
         const existSuperAdmin = await this.prisma.user.findUnique({
             where: {
-                phone: "+998975661099"
+                phone: "+998991234567"
             }
         });
         if (existSuperAdmin) {
@@ -68,9 +68,9 @@ let UserSeeder = class UserSeeder {
             data: {
                 first_name: "Superr",
                 last_name: "Adminn",
-                phone: "+998975661099",
-                password: await bcrypt.hash("Benazir99!", 10),
-                email: "abdukhoshim99@gmail.com",
+                phone: "+998991119999",
+                password: await bcrypt.hash("991119999", 10),
+                email: "oydin6661@gmail.com",
                 address: "Toshkent, Uzbekiston",
                 role: client_1.Role.SUPERADMIN
             }

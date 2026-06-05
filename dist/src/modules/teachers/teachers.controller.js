@@ -32,6 +32,9 @@ let TeachersController = class TeachersController {
     getAllTeachers() {
         return this.teacherService.getAllTeachers();
     }
+    getMyGroups(req) {
+        return this.teacherService.getMyGroups(req.user.id);
+    }
     createTeacher(payload, file) {
         return this.teacherService.createTeacher(payload, file?.filename);
     }
@@ -54,6 +57,18 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], TeachersController.prototype, "getAllTeachers", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: `${client_1.Role.TEACHER},`
+    }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
+    (0, role_1.Roles)(client_1.Role.TEACHER),
+    (0, common_1.Get)('my/groups'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], TeachersController.prototype, "getMyGroups", null);
 __decorate([
     (0, swagger_1.ApiOperation)({
         summary: `${client_1.Role.SUPERADMIN}, ${client_1.Role.ADMIN}`,

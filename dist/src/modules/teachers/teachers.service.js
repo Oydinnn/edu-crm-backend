@@ -98,6 +98,73 @@ let TeachersService = class TeachersService {
             data: formatedTeachers,
         };
     }
+    async getMyGroups(teacherId) {
+        const groups = await this.prisma.group.findMany({
+            where: {
+                groupTeachers: {
+                    some: {
+                        teacher_id: teacherId,
+                        status: client_1.TeacherGroupStatus.active,
+                    },
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+                max_student: true,
+                start_date: true,
+                start_time: true,
+                week_day: true,
+                status: true,
+                description: true,
+                courses: {
+                    select: {
+                        id: true,
+                        name: true,
+                        duration_month: true,
+                        duration_hours: true,
+                    },
+                },
+                rooms: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                studentGroups: {
+                    select: {
+                        students: {
+                            select: {
+                                _count: true,
+                                id: true,
+                                full_name: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        const dataFormatter = groups.map((el) => ({
+            id: el.id,
+            name: el.name,
+            max_student: el.max_student,
+            start_date: el.start_date,
+            start_time: el.start_time,
+            weekDay: el.week_day,
+            status: el.status,
+            description: el.description,
+            course: el.courses?.name || "Noma'lum",
+            course_duration_month: el.courses?.duration_month || 0,
+            course_duration_hours: el.courses?.duration_hours || 0,
+            room: el.rooms?.name || "Noma'lum",
+            students: el.studentGroups?.map((sg) => sg.students) || [],
+            student_count: el.studentGroups?.length || 0,
+        }));
+        return {
+            success: true,
+            data: dataFormatter,
+        };
+    }
     async createTeacher(payload, filename) {
         const existTeacher = await this.prisma.teacher.findFirst({
             where: {

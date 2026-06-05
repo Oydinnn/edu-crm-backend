@@ -97,11 +97,11 @@ __decorate([
             type: 'object',
             properties: {
                 full_name: { type: 'string', example: "Nodir Nodirov" },
-                email: { type: 'string' },
-                password: { type: 'string' },
-                phone: { type: 'string' },
+                email: { type: 'string', example: "oydin6661@gmail.com" },
+                password: { type: 'string', example: "991234567" },
+                phone: { type: 'string', example: "+998991234567" },
                 photo: { type: 'string', format: 'binary' },
-                address: { type: "string" },
+                address: { type: "string", example: "Toshkent, Uzbekiston" },
                 birth_date: { type: 'string', format: 'date', example: '2000-01-01' },
             }
         }

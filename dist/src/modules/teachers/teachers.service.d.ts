@@ -22,6 +22,33 @@ export declare class TeachersService {
             }[];
         }[];
     }>;
+    getMyGroups(teacherId: number): Promise<{
+        success: boolean;
+        data: {
+            id: number;
+            name: string;
+            max_student: number;
+            start_date: Date;
+            start_time: string;
+            weekDay: string[];
+            status: import("@prisma/client").$Enums.GroupStatus;
+            description: string | null;
+            course: string;
+            course_duration_month: number;
+            course_duration_hours: number;
+            room: string;
+            students: {
+                id: number;
+                _count: {
+                    studentGroups: number;
+                    attendances: number;
+                    homeworkAnswerStudents: number;
+                };
+                full_name: string;
+            }[];
+            student_count: number;
+        }[];
+    }>;
     createTeacher(payload: CreateTeacherDto, filename?: string): Promise<{
         success: boolean;
         message: string;
@@ -53,6 +80,7 @@ export declare class TeachersService {
                 };
             } & {
                 id: number;
+                status: import("@prisma/client").$Enums.TeacherGroupStatus;
                 created_at: Date;
                 group_id: number;
                 teacher_id: number;
