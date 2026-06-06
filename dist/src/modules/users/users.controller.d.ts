@@ -6,12 +6,12 @@ export declare class UsersController {
     getAllAdmins(): Promise<{
         success: boolean;
         data: {
+            id: number;
             first_name: string;
             last_name: string;
+            role: import("@prisma/client").$Enums.Role;
             phone: string;
             email: string;
-            id: number;
-            role: import("@prisma/client").$Enums.Role;
             photo: string | null;
         }[];
     }>;

@@ -18,6 +18,96 @@ let GroupsService = class GroupsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async getLessons(groupId, userId) {
+        const existGroup = await this.prisma.studentGroup.findFirst({
+            where: {
+                group_id: groupId,
+                student_id: userId,
+            },
+        });
+        if (!existGroup) {
+            throw new common_1.NotFoundException("Group not found with this id");
+        }
+        let lessons = await this.prisma.lesson.findMany({
+            where: {
+                group_id: groupId,
+                status: client_1.Status.active,
+            },
+            select: {
+                id: true,
+                topic: true,
+                created_at: true,
+                _count: {
+                    select: {
+                        lessonVideos: true,
+                    }
+                },
+                homework: {
+                    select: {
+                        lesson_id: true,
+                        homeworkAnswerStudents: {
+                            where: {
+                                student_id: userId,
+                            },
+                            select: {
+                                homeworkStatus: true,
+                                homeworkResults: {
+                                    select: {
+                                        homeworkStatus: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        lessons = lessons.map(lesson => {
+            if (lesson.homework.length === 0) {
+                return {
+                    ...lesson,
+                    status: 'berilmagan',
+                };
+            }
+            const answer = lesson.homework[0]?.homeworkAnswerStudents?.[0];
+            if (!answer) {
+                return {
+                    ...lesson,
+                    status: 'bajarilmagan',
+                };
+            }
+            if (answer.homeworkStatus === client_1.HomeworkStatus.PENDING) {
+                return {
+                    ...lesson,
+                    status: 'kutilmoqda',
+                };
+            }
+            const result = answer.homeworkResults?.[0];
+            if (result?.homeworkStatus === client_1.HomeworkStatus.ACCEPTED) {
+                return {
+                    ...lesson,
+                    status: 'bajarilgan',
+                };
+            }
+            if (result?.homeworkStatus === client_1.HomeworkStatus.REJECTED) {
+                return {
+                    ...lesson,
+                    status: 'qaytarilgan',
+                };
+            }
+            return {
+                ...lesson,
+                status: 'bajarilmagan',
+            };
+        });
+        const lessonFormatted = lessons.map(lesson => ({
+            topic: lesson?.topic,
+            created_at: lesson?.created_at,
+            status: lesson?.status,
+            videoCount: lesson?._count?.lessonVideos
+        }));
+        return lessonFormatted;
+    }
     async getGroupOne(groupId) {
         const existGroup = await this.prisma.group.findFirst({
             where: {

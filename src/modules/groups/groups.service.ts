@@ -5,16 +5,119 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "src/core/database/prisma.service";
 import { CreateGroupDto } from "./dto/create.dto";
-import { GroupStatus, Status } from "@prisma/client";
+import { GroupStatus, HomeworkStatus, Status } from "@prisma/client";
 import { filterDto } from "./dto/search";
 import { UpdateGroupDto } from "./dto/update.dto";
 import { CreateLessonDto } from "../lessons/dto/create.lesson.dto";
 import { create } from "node:domain";
 import { start } from "node:repl";
+import { async } from "rxjs";
 
 @Injectable()
 export class GroupsService {
   constructor(private prisma: PrismaService) {}
+
+
+
+  async getLessons(groupId: number, userId: number) {
+    const existGroup = await this.prisma.studentGroup.findFirst({
+      where:{
+        group_id:groupId,
+        student_id:userId,
+      },
+    })
+    if (!existGroup) {
+      throw new NotFoundException("Group not found with this id");
+    }
+      let lessons: any = await this.prisma.lesson.findMany({
+      where:{
+        group_id:groupId,
+        status:Status.active,
+      },
+      select:{
+        id:true,
+        topic:true,
+        created_at:true,
+
+        _count:{
+          select:{
+            lessonVideos:true,
+          }
+        },
+        
+        homework:{
+          select:{
+            lesson_id:true,
+            homeworkAnswerStudents:{
+              where:{
+                student_id:userId,
+              },
+              select:{
+                homeworkStatus: true,
+                homeworkResults:{
+                  select:{
+                    homeworkStatus:true,
+                  }
+                }
+                
+              }
+            }
+            
+          }
+        }
+      }
+    })
+    
+    
+    lessons = lessons.map(lesson => {
+      if (lesson.homework.length === 0) {
+        return {
+          ...lesson,
+          status: 'berilmagan',
+        };
+      }
+      const answer = lesson.homework[0]?.homeworkAnswerStudents?.[0];
+      if (!answer) {
+        return {
+          ...lesson,
+          status: 'bajarilmagan',
+        };
+      }
+      if (answer.homeworkStatus === HomeworkStatus.PENDING) {
+        return {
+          ...lesson,
+          status: 'kutilmoqda',
+        };
+      }
+      const result = answer.homeworkResults?.[0];
+      if (result?.homeworkStatus === HomeworkStatus.ACCEPTED) {
+        return {
+          ...lesson,
+          status: 'bajarilgan',
+        };
+      }
+      if (result?.homeworkStatus === HomeworkStatus.REJECTED) {
+        return {
+          ...lesson,
+          status: 'qaytarilgan',
+        };
+      }
+      return {
+        ...lesson,
+        status: 'bajarilmagan',
+      };
+    })
+    const lessonFormatted = lessons.map(lesson => ({
+        topic: lesson?.topic,
+        created_at: lesson?.created_at,
+        status: lesson?.status,
+        videoCount:lesson?._count?.lessonVideos
+    })
+  )
+  return  lessonFormatted;
+  
+
+  }
 
   async getGroupOne(groupId: number) {
     const existGroup = await this.prisma.group.findFirst({

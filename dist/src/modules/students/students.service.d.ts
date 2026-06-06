@@ -14,40 +14,23 @@ export declare class StudentsService {
         id: number;
     }): Promise<{
         success: boolean;
-        data: ({
-            courses: {
-                id: number;
-                status: import("@prisma/client").$Enums.Status;
-                created_at: Date;
-                update_at: Date;
-                name: string;
-                description: string | null;
-                price: import("@prisma/client-runtime-utils").Decimal;
-                duration_month: number;
-                duration_hours: number;
-            };
-            rooms: {
-                id: number;
-                status: import("@prisma/client").$Enums.Status;
-                created_at: Date;
-                update_at: Date;
-                name: string;
-                capacity: number | null;
-            };
-        } & {
-            id: number;
+        data: {
+            groupName: string;
+            courseName: string;
+            teacherCount: number;
+            startDate: Date;
+            groupId: number;
             status: import("@prisma/client").$Enums.GroupStatus;
-            created_at: Date;
-            update_at: Date;
-            name: string;
-            description: string | null;
-            course_id: number;
-            room_id: number;
-            start_date: Date;
-            week_day: string[];
-            start_time: string;
-            max_student: number;
-        })[];
+            weekDay: string[];
+            startTime: string;
+            teachers: {
+                full_name: string;
+                week_day: string[];
+                role: string;
+                start_time: string;
+                duration_hours: number;
+            }[];
+        }[];
     }>;
     getAllStudents(pagination: PaginationDto, search: filterDto): Promise<{
         success: boolean;

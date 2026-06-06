@@ -59,20 +59,61 @@ let StudentsService = class StudentsService {
         const myGroups = await this.prisma.studentGroup.findMany({
             where: {
                 student_id: currentUser.id,
-                status: client_1.Status.active,
             },
-            include: {
+            select: {
                 groups: {
-                    include: {
-                        courses: true,
-                        rooms: true,
-                    },
-                },
-            },
+                    select: {
+                        id: true,
+                        name: true,
+                        status: true,
+                        start_date: true,
+                        week_day: true,
+                        start_time: true,
+                        courses: {
+                            select: {
+                                name: true,
+                                duration_hours: true,
+                            }
+                        },
+                        _count: {
+                            select: {
+                                groupTeachers: true,
+                            }
+                        },
+                        groupTeachers: {
+                            select: {
+                                teacher: {
+                                    select: {
+                                        id: true,
+                                        full_name: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         });
+        const formattedGroup = myGroups.map((el) => ({
+            groupName: el.groups.name,
+            courseName: el.groups.courses.name,
+            teacherCount: el.groups._count.groupTeachers,
+            startDate: el.groups.start_date,
+            groupId: el.groups.id,
+            status: el.groups.status,
+            weekDay: el.groups.week_day,
+            startTime: el.groups.start_time,
+            teachers: el.groups.groupTeachers.map(teacher => ({
+                full_name: teacher.teacher.full_name,
+                week_day: el.groups.week_day,
+                role: "TEACHER",
+                start_time: el.groups.start_time,
+                duration_hours: el.groups.courses.duration_hours,
+            }))
+        }));
         return {
             success: true,
-            data: myGroups.map((el) => el.groups),
+            data: formattedGroup,
         };
     }
     async getAllStudents(pagination, search) {

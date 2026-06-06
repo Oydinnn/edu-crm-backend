@@ -79,7 +79,14 @@ export class UsersService {
             }
         } else if (role === Role.TEACHER) {
             const teacher = await this.prisma.teacher.findUnique({
-                where: { id: userId }
+                where: { id: userId },
+                include: {
+                    groupTeachers: {
+                        include: {
+                            group: true
+                        }
+                    }
+                }
             });
             if (teacher) {
                 profile = {
@@ -88,12 +95,26 @@ export class UsersService {
                     email: teacher.email,
                     phone: teacher.phone,
                     photo: teacher.photo,
-                    role: 'TEACHER'
+                    address: teacher.address,
+                    status: teacher.status,
+                    created_at: teacher.created_at,
+                    role: 'TEACHER',
+                    groups: teacher.groupTeachers.map(gt => ({
+                        id: gt.group.id,
+                        name: gt.group.name
+                    }))
                 };
             }
         } else if (role === Role.STUDENT) {
             const student = await this.prisma.student.findUnique({
-                where: { id: userId }
+                where: { id: userId },
+                include: {
+                    studentGroups: {
+                        include: {
+                            groups: true
+                        }
+                    }
+                }
             });
             if (student) {
                 profile = {
@@ -102,7 +123,15 @@ export class UsersService {
                     email: student.email,
                     phone: student.phone,
                     photo: student.photo,
-                    role: 'STUDENT'
+                    birth_date: student.birth_date,
+                    address: student.address,
+                    status: student.status,
+                    created_at: student.created_at,
+                    role: 'STUDENT',
+                    groups: student.studentGroups.map(sg => ({
+                        id: sg.groups.id,
+                        name: sg.groups.name
+                    }))
                 };
             }
         }

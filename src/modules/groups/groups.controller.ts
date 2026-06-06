@@ -28,6 +28,23 @@ import { CreateLessonDto } from "../lessons/dto/create.lesson.dto";
 export class GroupsController {
   constructor(private readonly groupService: GroupsService) {}
 
+
+  @ApiOperation({
+    summary: `${Role.STUDENT}`,
+  })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  @Get(":groupId/lessonId/all")
+  getLessons(
+    @Param("groupId", ParseIntPipe) groupId: number,
+    @Req() req: Request
+  ){
+    return this.groupService.getLessons(groupId, req['user'].id)
+  }
+
+
+
+
   @ApiOperation({
     summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
   })
