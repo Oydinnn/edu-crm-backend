@@ -30,6 +30,23 @@ export class GroupsController {
 
 
   @ApiOperation({
+    summary:`${Role.STUDENT}`
+  })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  @Get(":groupId/lessonss")
+  getLessonsByGroupId(
+    @Param("groupId", ParseIntPipe) groupId: number,
+    @Req() req: Request
+  ){
+    return this.groupService.getLessonsByGroupId(groupId, req['user'].id)
+  }
+
+
+
+
+
+  @ApiOperation({
     summary: `${Role.STUDENT}`,
   })
   @UseGuards(AuthGuard, RolesGuard)

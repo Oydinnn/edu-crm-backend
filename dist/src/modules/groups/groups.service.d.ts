@@ -7,17 +7,24 @@ import { CreateLessonDto } from "../lessons/dto/create.lesson.dto";
 export declare class GroupsService {
     private prisma;
     constructor(prisma: PrismaService);
+    getLessonsByGroupId(groupId: number, userId: number): Promise<{
+        id: number;
+        topic: string;
+        created_at: Date;
+        homework_id: number | null;
+        videoCount: number;
+    }[]>;
     getLessons(groupId: number, userId: number): Promise<any>;
     getGroupOne(groupId: number): Promise<{
         success: boolean;
         data: {
-            id: number;
-            created_at: Date;
-            full_name: string;
             phone: string;
             email: string;
-            birth_date: Date;
+            id: number;
             photo: string | null;
+            created_at: Date;
+            full_name: string;
+            birth_date: Date;
         }[];
     }>;
     getAllGroups(search: filterDto): Promise<{
@@ -41,12 +48,12 @@ export declare class GroupsService {
             }[];
             students: {
                 id: number;
-                full_name: string;
                 _count: {
                     studentGroups: number;
                     attendances: number;
                     homeworkAnswerStudents: number;
                 };
+                full_name: string;
             }[];
             student_count: number;
         }[];
@@ -63,10 +70,10 @@ export declare class GroupsService {
             max_student: number;
             description: string | null;
             teachers: {
-                id: number;
-                full_name: string;
                 phone: string;
+                id: number;
                 photo: string | null;
+                full_name: string;
             }[];
             students: {
                 id: number;

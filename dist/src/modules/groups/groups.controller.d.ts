@@ -7,6 +7,13 @@ import { CreateLessonDto } from "../lessons/dto/create.lesson.dto";
 export declare class GroupsController {
     private readonly groupService;
     constructor(groupService: GroupsService);
+    getLessonsByGroupId(groupId: number, req: Request): Promise<{
+        id: number;
+        topic: string;
+        created_at: Date;
+        homework_id: number | null;
+        videoCount: number;
+    }[]>;
     getLessons(groupId: number, req: Request): Promise<any>;
     getGroupOne(groupId: number): Promise<{
         success: boolean;
@@ -41,12 +48,12 @@ export declare class GroupsController {
             }[];
             students: {
                 id: number;
-                full_name: string;
                 _count: {
                     studentGroups: number;
                     attendances: number;
                     homeworkAnswerStudents: number;
                 };
+                full_name: string;
             }[];
             student_count: number;
         }[];
@@ -89,11 +96,11 @@ export declare class GroupsController {
         message: string;
         data: {
             id: number;
+            description: string | null;
             status: import("@prisma/client").$Enums.GroupStatus;
             created_at: Date;
             update_at: Date;
             name: string;
-            description: string | null;
             course_id: number;
             room_id: number;
             start_date: Date;
@@ -108,11 +115,11 @@ export declare class GroupsController {
     }>;
     toggleStatus(id: number, status: GroupStatus): Promise<{
         id: number;
+        description: string | null;
         status: import("@prisma/client").$Enums.GroupStatus;
         created_at: Date;
         update_at: Date;
         name: string;
-        description: string | null;
         course_id: number;
         room_id: number;
         start_date: Date;

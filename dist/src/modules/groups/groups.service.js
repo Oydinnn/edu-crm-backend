@@ -18,6 +18,49 @@ let GroupsService = class GroupsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async getLessonsByGroupId(groupId, userId) {
+        const existsStudent = await this.prisma.studentGroup.findFirst({
+            where: {
+                group_id: groupId,
+                student_id: userId,
+                status: client_1.Status.active,
+            },
+        });
+        if (!existsStudent) {
+            throw new common_1.NotFoundException("Group not found with this id");
+        }
+        const lessons = await this.prisma.lesson.findMany({
+            where: {
+                group_id: groupId,
+                status: client_1.Status.active,
+            },
+            select: {
+                id: true,
+                topic: true,
+                created_at: true,
+                _count: {
+                    select: {
+                        lessonVideos: true,
+                    }
+                },
+                homework: {
+                    select: {
+                        id: true,
+                    }
+                }
+            }
+        });
+        let lessonsFormatted = lessons.map(lesson => {
+            return {
+                id: lesson.id,
+                topic: lesson.topic,
+                created_at: lesson.created_at,
+                homework_id: lesson.homework[0]?.id ? lesson.homework[0].id : null,
+                videoCount: lesson._count.lessonVideos || 0,
+            };
+        });
+        return lessonsFormatted;
+    }
     async getLessons(groupId, userId) {
         const existGroup = await this.prisma.studentGroup.findFirst({
             where: {

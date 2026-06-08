@@ -10,8 +10,8 @@ export declare class StudentGroupController {
             status: import("@prisma/client").$Enums.Status;
             created_at: Date;
             update_at: Date;
-            student_id: number;
             group_id: number;
+            student_id: number;
         }[];
     }>;
     createStudentGroup(payload: CreateStudentGroupDto): Promise<{

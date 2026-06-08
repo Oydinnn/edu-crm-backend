@@ -377,7 +377,7 @@ export class HomeworkService {
         grade: payload.grade,
         title: payload.title,
         teacher_id: currentUser.role == Role.TEACHER ? currentUser.id : null,
-        user_id: currentUser.role != Role.ADMIN ? currentUser.id : null,
+        user_id: currentUser.role != Role.TEACHER ? currentUser.id : null,
         homeworkStatus: payload.grade >= 60 ? HomeworkStatus.ACCEPTED : HomeworkStatus.REJECTED,
       },
     })

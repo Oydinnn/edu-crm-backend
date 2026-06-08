@@ -29,6 +29,9 @@ let GroupsController = class GroupsController {
     constructor(groupService) {
         this.groupService = groupService;
     }
+    getLessonsByGroupId(groupId, req) {
+        return this.groupService.getLessonsByGroupId(groupId, req['user'].id);
+    }
     getLessons(groupId, req) {
         return this.groupService.getLessons(groupId, req['user'].id);
     }
@@ -64,6 +67,19 @@ let GroupsController = class GroupsController {
     }
 };
 exports.GroupsController = GroupsController;
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: `${client_1.Role.STUDENT}`
+    }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
+    (0, role_1.Roles)(client_1.Role.STUDENT),
+    (0, common_1.Get)(":groupId/lessonss"),
+    __param(0, (0, common_1.Param)("groupId", common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Request]),
+    __metadata("design:returntype", void 0)
+], GroupsController.prototype, "getLessonsByGroupId", null);
 __decorate([
     (0, swagger_1.ApiOperation)({
         summary: `${client_1.Role.STUDENT}`,

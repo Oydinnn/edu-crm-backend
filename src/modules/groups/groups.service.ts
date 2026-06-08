@@ -18,6 +18,50 @@ export class GroupsService {
   constructor(private prisma: PrismaService) {}
 
 
+  async getLessonsByGroupId(groupId: number, userId: number) {
+    const existsStudent = await this.prisma.studentGroup.findFirst({
+      where:{
+        group_id:groupId,
+        student_id:userId,
+        status:Status.active,
+      },
+    })
+    if (!existsStudent) {
+      throw new NotFoundException("Group not found with this id");
+    }
+    const lessons = await this.prisma.lesson.findMany({
+      where:{
+        group_id:groupId,
+        status:Status.active,
+      },
+      select:{
+        id:true,
+        topic:true,
+        created_at:true,
+        _count:{
+          select:{
+            lessonVideos:true,
+          }
+        },
+        homework:{
+          select:{
+            id:true,
+          }
+        }
+      }
+    })
+    let  lessonsFormatted = lessons.map(lesson => {
+      return {
+        id: lesson.id,
+        topic: lesson.topic,  
+        created_at: lesson.created_at,
+        homework_id: lesson.homework[0]?.id ? lesson.homework[0].id : null, // Har bir dars uchun bitta homework bor deb taxmin qilamiz;
+        videoCount: lesson._count.lessonVideos || 0, // Har bir dars uchun video soni
+  }})
+  return lessonsFormatted;
+  }
+
+
 
   async getLessons(groupId: number, userId: number) {
     const existGroup = await this.prisma.studentGroup.findFirst({

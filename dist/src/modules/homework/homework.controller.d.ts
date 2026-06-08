@@ -14,11 +14,11 @@ export declare class HomeworkController {
             created_at: Date;
             update_at: Date;
             user: {
+                id: number;
+                phone: string;
+                photo: string | null;
                 first_name: string;
                 last_name: string;
-                phone: string;
-                id: number;
-                photo: string | null;
             } | null;
             teacher?: undefined;
         } | {
@@ -28,10 +28,10 @@ export declare class HomeworkController {
             created_at: Date;
             update_at: Date;
             teacher: {
-                phone: string;
                 id: number;
-                photo: string | null;
                 full_name: string;
+                phone: string;
+                photo: string | null;
             };
             user?: undefined;
         })[];
@@ -47,27 +47,27 @@ export declare class HomeworkController {
         success: boolean;
         data: {
             id: number;
+            title: string;
+            file: string | null;
             created_at: Date;
             students: {
                 id: number;
                 full_name: string;
             };
-            title: string;
-            file: string | null;
         } | null;
     }>;
     getAllHomework(): Promise<{
         success: boolean;
         data: {
             id: number;
-            created_at: Date;
-            update_at: Date;
-            title: string;
-            file: string | null;
-            group_id: number;
             teacher_id: number | null;
             user_id: number | null;
             lesson_id: number;
+            group_id: number;
+            title: string;
+            file: string | null;
+            created_at: Date;
+            update_at: Date;
         }[];
     }>;
     createHomework(req: Request, payload: CreateHomeworkDto, file?: Express.Multer.File): Promise<{

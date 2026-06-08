@@ -76,7 +76,6 @@ export declare class StudentsService {
             id: number;
             photo: string | null;
             full_name: string;
-            birth_date: Date;
             studentGroups: ({
                 groups: {
                     courses: {
@@ -117,9 +116,10 @@ export declare class StudentsService {
                 status: import("@prisma/client").$Enums.Status;
                 created_at: Date;
                 update_at: Date;
-                student_id: number;
                 group_id: number;
+                student_id: number;
             })[];
+            birth_date: Date;
         };
     }>;
     updateStudent(id: number, payload: UpdateStudentDto, filename?: string): Promise<{

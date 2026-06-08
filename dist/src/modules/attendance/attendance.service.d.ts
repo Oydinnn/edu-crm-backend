@@ -10,8 +10,8 @@ export declare class AttendanceService {
             id: number;
             created_at: Date;
             update_at: Date;
-            student_id: number;
             teacher_id: number | null;
+            student_id: number;
             user_id: number | null;
             lesson_id: number;
             isPresent: boolean;

@@ -26,6 +26,12 @@ let LessonsController = class LessonsController {
     constructor(lessonService) {
         this.lessonService = lessonService;
     }
+    getLessonHomeworks(groupId, lessonId, req) {
+        return this.lessonService.getLessonHomeworks(groupId, lessonId, req['user']);
+    }
+    getLessonVideos(groupId, lessonId, req) {
+        return this.lessonService.getLessonVideos(groupId, lessonId, req['user']);
+    }
     getMyGroupLessons(groupId, req) {
         return this.lessonService.getMyGroupLessons(groupId, req['user']);
     }
@@ -39,11 +45,39 @@ let LessonsController = class LessonsController {
 exports.LessonsController = LessonsController;
 __decorate([
     (0, swagger_1.ApiOperation)({
+        summary: `${client_1.Role.STUDENT}`
+    }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
+    (0, role_1.Roles)(client_1.Role.STUDENT),
+    (0, common_1.Get)("groups/:groupId/lessons/:lessonId/homeworks"),
+    __param(0, (0, common_1.Param)("groupId", common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)("lessonId", common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Request]),
+    __metadata("design:returntype", void 0)
+], LessonsController.prototype, "getLessonHomeworks", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: `${client_1.Role.STUDENT}`
+    }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
+    (0, role_1.Roles)(client_1.Role.STUDENT),
+    (0, common_1.Get)("groups/:groupId/lessons/:lessonId/videos"),
+    __param(0, (0, common_1.Param)("groupId", common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)("lessonId", common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Request]),
+    __metadata("design:returntype", void 0)
+], LessonsController.prototype, "getLessonVideos", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
         summary: `${client_1.Role.STUDENT}, ${client_1.Role.ADMIN}, ${client_1.Role.SUPERADMIN}, ${client_1.Role.TEACHER}`
     }),
     (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
     (0, role_1.Roles)(client_1.Role.STUDENT, client_1.Role.ADMIN, client_1.Role.SUPERADMIN, client_1.Role.TEACHER),
-    (0, common_1.Get)("my/group/:groupId"),
+    (0, common_1.Get)("lessons/my/group/:groupId"),
     __param(0, (0, common_1.Param)("groupId", common_1.ParseIntPipe)),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -56,7 +90,7 @@ __decorate([
     }),
     (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
     (0, role_1.Roles)(client_1.Role.ADMIN, client_1.Role.SUPERADMIN),
-    (0, common_1.Get)(),
+    (0, common_1.Get)('lessons'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
@@ -67,7 +101,7 @@ __decorate([
     }),
     (0, common_1.UseGuards)(jwt_auth_guard_1.AuthGuard, role_guard_1.RolesGuard),
     (0, role_1.Roles)(client_1.Role.ADMIN, client_1.Role.TEACHER, client_1.Role.SUPERADMIN),
-    (0, common_1.Post)(),
+    (0, common_1.Post)('lessons'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -77,7 +111,7 @@ __decorate([
 ], LessonsController.prototype, "createLesson", null);
 exports.LessonsController = LessonsController = __decorate([
     (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.Controller)('lessons'),
+    (0, common_1.Controller)(),
     __metadata("design:paramtypes", [lessons_service_1.LessonsService])
 ], LessonsController);
 //# sourceMappingURL=lessons.controller.js.map

@@ -321,7 +321,7 @@ let HomeworkService = class HomeworkService {
                 grade: payload.grade,
                 title: payload.title,
                 teacher_id: currentUser.role == client_1.Role.TEACHER ? currentUser.id : null,
-                user_id: currentUser.role != client_1.Role.ADMIN ? currentUser.id : null,
+                user_id: currentUser.role != client_1.Role.TEACHER ? currentUser.id : null,
                 homeworkStatus: payload.grade >= 60 ? client_1.HomeworkStatus.ACCEPTED : client_1.HomeworkStatus.REJECTED,
             },
         });
