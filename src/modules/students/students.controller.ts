@@ -1,0 +1,477 @@
+// import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+// import { Role, StudentStatus } from '@prisma/client';
+// import { StudentsService } from './students.service';
+// import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
+// import { RolesGuard } from 'src/common/guards/role.guard';
+// import { Roles } from 'src/common/decorators/role';
+// import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+// import { CreateStudentDto } from './dto/create.dto';
+// import { FileInterceptor } from '@nestjs/platform-express';
+// import { diskStorage } from 'multer';
+// import { PaginationDto } from './dto/pagination.dto';
+// import { UpdateStudentDto } from './dto/update.dto';
+// import { filterDto } from './dto/search';
+// import { CreateHomeworkAnswerDto } from './dto/createHomeworkAnswer.dto';
+
+// @ApiBearerAuth()
+// @Controller('students')
+// export class StudentsController {
+//     constructor(private readonly studentService: StudentsService) { }
+
+//     @ApiOperation({
+//         summary: `${Role.STUDENT}`,
+//     })
+//     @UseGuards(AuthGuard, RolesGuard)
+//     @Roles(Role.STUDENT)
+//     @Get("my/groups")
+//     getMyGroups(@Req() req:  Request){
+//         return this.studentService.getMyGroups(req['user'])
+//     }
+
+
+
+
+
+
+//     @ApiOperation({
+//         summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+//     })
+//     @UseGuards(AuthGuard, RolesGuard)
+//     @Roles(Role.SUPERADMIN, Role.ADMIN)
+//     @Get()
+//     getAllStudents(
+//         @Query() pagination : PaginationDto,
+//         @Query() search: filterDto
+//     ) {
+//         return this.studentService.getAllStudents(pagination, search)
+//     }
+
+
+
+
+
+
+
+
+//     @ApiOperation({
+//         summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+//         description: "Bu endpointga admin va superadmin huquqi bor"
+//     })
+//     @UseGuards(AuthGuard, RolesGuard)
+//     @Roles(Role.SUPERADMIN, Role.ADMIN)
+//     @ApiConsumes("multipart/form-data")
+//     @ApiBody({
+//         schema: {
+//             type: 'object',
+//             properties: {
+//                 full_name: { type: 'string', example: "Nodir Nodirov" },
+//                 email: { type: 'string', example: "oydin6661@gmail.com" },
+//                 password: { type: 'string', example: "991234567" },
+//                 phone: { type: 'string', example: "+998991234567" },
+//                 photo: { type: 'string', format: 'binary' },
+//                 address: { type: "string", example: "Toshkent, Uzbekiston" },
+//                 birth_date: { type: 'string', format: 'date', example: '2000-01-01' },
+//             }
+//         }
+//     })
+//     @UseInterceptors(FileInterceptor("photo", {
+//         storage: diskStorage({
+//             destination: "./src/uploads",
+//             filename: (req, file, cb) => {
+//                 const filename = Date.now() + "." + file.mimetype.split("/")[1]
+//                 cb(null, filename)
+//             }
+//         }),
+//         fileFilter:(req,file,cb) =>{
+//             const existFile = ["png","jpg","jpeg"]
+
+//             if(!existFile.includes(file.mimetype.split("/")[1])){
+//                 cb(new UnsupportedMediaTypeException(),false)
+//             }
+
+//             cb(null,true)
+//         }
+//     }))
+//     @Post()
+//     createStudent(
+//         @Body() payload: CreateStudentDto,
+//         @UploadedFile() file?: Express.Multer.File
+//     ) {
+//         return this.studentService.createStudent(payload, file?.filename)
+//     }
+
+
+//     @ApiOperation({
+//         summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+//     })
+//     @UseGuards(AuthGuard, RolesGuard)
+//     @Roles(Role.SUPERADMIN, Role.ADMIN)
+//     @Get(':id')
+//     getStudentById(@Param('id') id: number) {
+//         return this.studentService.getStudentById(+id);
+//     }
+
+
+
+
+//     @ApiOperation({
+//     summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+//     description: "Bu endpointga admin va superadmin huquqi bor - Student ma'lumotlarini yangilash"
+//     })
+//     @UseGuards(AuthGuard, RolesGuard)
+//     @Roles(Role.SUPERADMIN, Role.ADMIN)
+//     @ApiConsumes("multipart/form-data")
+//     @ApiBody({
+//         schema: {
+//             type: 'object',
+//             properties: {
+//                 full_name: { type: 'string', example: "Nodir Nodirov" },
+//                 email: { type: 'string' },
+//                 password: { type: 'string' },
+//                 phone: { type: 'string' },
+//                 photo: { type: 'string', format: 'binary' },
+//                 address: { type: "string" },
+//                 birth_date: { type: 'string', format: 'date', example: '2000-01-01' },
+//                 status: { type: 'string', enum: ['active', 'inactive', 'freeze', 'graduated']}
+//             }
+//         }
+//     })
+//     @UseInterceptors(FileInterceptor("photo", {
+//         storage: diskStorage({
+//             destination: "./src/uploads",
+//             filename: (req, file, cb) => {
+//                 const filename = Date.now() + "." + file.mimetype.split("/")[1]
+//                 cb(null, filename)
+//             }
+//         }),
+//         fileFilter: (req, file, cb) => {
+//             const existFile = ["png", "jpg", "jpeg"]
+            
+//             if (!existFile.includes(file.mimetype.split("/")[1])) {
+//                 cb(new UnsupportedMediaTypeException(), false)
+//             }
+            
+//             cb(null, true)
+//         }
+//     }))
+//     @Patch(':id')
+//     updateStudent(
+//         @Param('id') id: number,
+//         @Body() payload: UpdateStudentDto,
+//         @UploadedFile() file?: Express.Multer.File
+//     ) {
+//         return this.studentService.updateStudent(+id, payload, file?.filename);
+//     }
+
+
+
+
+//       @ApiOperation({
+//         summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+//       })
+//       @ApiOperation({ summary: `${Role.SUPERADMIN}, ${Role.ADMIN}` })
+//       @UseGuards(AuthGuard, RolesGuard)
+//       @Roles(Role.SUPERADMIN, Role.ADMIN)
+//       @Patch(":id/status")
+//       toggleStatus(
+//         @Param("id", ParseIntPipe) id: number,
+//         @Body("status") status: StudentStatus,
+//       ) {
+//         return this.studentService.toggleStatus(id, status);
+//       }
+
+
+
+
+
+//     @ApiOperation({
+//         summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+//     })
+//     @UseGuards(AuthGuard, RolesGuard)
+//     @Roles(Role.SUPERADMIN, Role.ADMIN)
+//     @Delete(':id')
+//     deleteStudent(@Param('id') id: number) {
+//         return this.studentService.deleteStudent(+id);
+//     }
+
+
+//     @ApiOperation({
+//         summary: `${Role.STUDENT}`
+//     })
+//     @UseGuards(AuthGuard, RolesGuard)
+//     @Roles(Role.STUDENT)
+//      @ApiConsumes("multipart/form-data")
+//     @ApiBody({
+//         schema: {
+//             type: 'object',
+//             properties: {
+//                 title: { type: "string", example: "My answer to the homework" },
+//                 files: {
+//                     type: 'array',
+//                     items: { type: 'string', format: 'binary' }
+//                 },
+//             }
+//         }
+//     })
+//     @UseInterceptors(FileInterceptor("file", {
+//         storage: diskStorage({
+//             destination: "./src/uploads/answers",
+//             filename: (req, file, cb) => {
+//                 const filename = Date.now() + "." + file.mimetype.split("/")[1]
+//                 cb(null, filename)
+//             }
+//         })
+//     }))
+//     @Post("homeworkAnswer/:homeworkId")
+//     createHomeworkAnswer(
+//         @Param("homeworkId", ParseIntPipe) homeworkId : number,
+//         @Req() req : Request,
+//         @Body() payload: CreateHomeworkAnswerDto,
+//         @UploadedFile() file?: Express.Multer.File
+//     ){
+//         return this.studentService.createHomeworkAnswer(homeworkId, req['user'], payload, file?.filename)
+//     }
+
+
+// }
+
+
+
+
+
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UnsupportedMediaTypeException, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Role, StudentStatus } from '@prisma/client';
+import { StudentsService } from './students.service';
+import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/role.guard';
+import { Roles } from 'src/common/decorators/role';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { CreateStudentDto } from './dto/create.dto';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { PaginationDto } from './dto/pagination.dto';
+import { UpdateStudentDto } from './dto/update.dto';
+import { filterDto } from './dto/search';
+import { CreateHomeworkAnswerDto } from './dto/createHomeworkAnswer.dto';
+
+@ApiBearerAuth()
+@Controller('students')
+export class StudentsController {
+    constructor(private readonly studentService: StudentsService) { }
+
+    @ApiOperation({
+        summary: `${Role.STUDENT}`,
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.STUDENT)
+    @Get("my/groups")
+    getMyGroups(@Req() req:  Request){
+        return this.studentService.getMyGroups(req['user'])
+    }
+
+
+
+
+
+
+    @ApiOperation({
+        summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.SUPERADMIN, Role.ADMIN)
+    @Get()
+    getAllStudents(
+        @Query() pagination : PaginationDto,
+        @Query() search: filterDto
+    ) {
+        return this.studentService.getAllStudents(pagination, search)
+    }
+
+
+
+
+
+
+
+
+    @ApiOperation({
+        summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+        description: "Bu endpointga admin va superadmin huquqi bor"
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.SUPERADMIN, Role.ADMIN)
+    @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                full_name: { type: 'string', example: "Nodir Nodirov" },
+                email: { type: 'string', example: "oydin6661@gmail.com" },
+                password: { type: 'string', example: "991234567" },
+                phone: { type: 'string', example: "+998991234567" },
+                photo: { type: 'string', format: 'binary' },
+                address: { type: "string", example: "Toshkent, Uzbekiston" },
+                birth_date: { type: 'string', format: 'date', example: '2000-01-01' },
+            }
+        }
+    })
+    @UseInterceptors(FileInterceptor("photo", {
+        storage: diskStorage({
+            destination: "./src/uploads",
+            filename: (req, file, cb) => {
+                const filename = Date.now() + "." + file.mimetype.split("/")[1]
+                cb(null, filename)
+            }
+        }),
+        fileFilter:(req,file,cb) =>{
+            const existFile = ["png","jpg","jpeg"]
+
+            if(!existFile.includes(file.mimetype.split("/")[1])){
+                cb(new UnsupportedMediaTypeException(),false)
+            }
+
+            cb(null,true)
+        }
+    }))
+    @Post()
+    createStudent(
+        @Body() payload: CreateStudentDto,
+        @UploadedFile() file?: Express.Multer.File
+    ) {
+        return this.studentService.createStudent(payload, file?.filename)
+    }
+
+
+    @ApiOperation({
+        summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.SUPERADMIN, Role.ADMIN)
+    @Get(':id')
+    getStudentById(@Param('id') id: number) {
+        return this.studentService.getStudentById(+id);
+    }
+
+
+
+
+    @ApiOperation({
+    summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+    description: "Bu endpointga admin va superadmin huquqi bor - Student ma'lumotlarini yangilash"
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.SUPERADMIN, Role.ADMIN)
+    @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                full_name: { type: 'string', example: "Nodir Nodirov" },
+                email: { type: 'string' },
+                password: { type: 'string' },
+                phone: { type: 'string' },
+                photo: { type: 'string', format: 'binary' },
+                address: { type: "string" },
+                birth_date: { type: 'string', format: 'date', example: '2000-01-01' },
+                status: { type: 'string', enum: ['active', 'inactive', 'freeze', 'graduated']}
+            }
+        }
+    })
+    @UseInterceptors(FileInterceptor("photo", {
+        storage: diskStorage({
+            destination: "./src/uploads",
+            filename: (req, file, cb) => {
+                const filename = Date.now() + "." + file.mimetype.split("/")[1]
+                cb(null, filename)
+            }
+        }),
+        fileFilter: (req, file, cb) => {
+            const existFile = ["png", "jpg", "jpeg"]
+            
+            if (!existFile.includes(file.mimetype.split("/")[1])) {
+                cb(new UnsupportedMediaTypeException(), false)
+            }
+            
+            cb(null, true)
+        }
+    }))
+    @Patch(':id')
+    updateStudent(
+        @Param('id') id: number,
+        @Body() payload: UpdateStudentDto,
+        @UploadedFile() file?: Express.Multer.File
+    ) {
+        return this.studentService.updateStudent(+id, payload, file?.filename);
+    }
+
+
+
+
+      @ApiOperation({
+        summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+      })
+      @ApiOperation({ summary: `${Role.SUPERADMIN}, ${Role.ADMIN}` })
+      @UseGuards(AuthGuard, RolesGuard)
+      @Roles(Role.SUPERADMIN, Role.ADMIN)
+      @Patch(":id/status")
+      toggleStatus(
+        @Param("id", ParseIntPipe) id: number,
+        @Body("status") status: StudentStatus,
+      ) {
+        return this.studentService.toggleStatus(id, status);
+      }
+
+
+
+
+
+    @ApiOperation({
+        summary: `${Role.SUPERADMIN}, ${Role.ADMIN}`,
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.SUPERADMIN, Role.ADMIN)
+    @Delete(':id')
+    deleteStudent(@Param('id') id: number) {
+        return this.studentService.deleteStudent(+id);
+    }
+
+
+    @ApiOperation({
+        summary: `${Role.STUDENT}`
+    })
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.STUDENT)
+     @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                title: { type: "string", example: "My answer to the homework" },
+                files: {
+                    type: 'array',
+                    items: { type: 'string', format: 'binary' }
+                },
+            }
+        }
+    })
+    @UseInterceptors(FilesInterceptor("files", 10, {
+        storage: diskStorage({
+            destination: "./src/uploads/answers",
+            filename: (req, file, cb) => {
+                const filename = Date.now() + "." + file.mimetype.split("/")[1]
+                cb(null, filename)
+            }
+        })
+    }))
+    @Post("homeworkAnswer/:homeworkId")
+    createHomeworkAnswer(
+        @Param("homeworkId", ParseIntPipe) homeworkId : number,
+        @Req() req : Request,
+        @Body() payload: CreateHomeworkAnswerDto,
+        @UploadedFiles() files?: Express.Multer.File[]
+    ){
+        return this.studentService.createHomeworkAnswer(homeworkId, req['user'], payload, files?.map(file => file.filename) ?? [])
+    }
+
+
+}
