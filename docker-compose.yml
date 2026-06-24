@@ -20,7 +20,6 @@ services:
     restart: always
     ports:
       - "6380:6379"
-      
 
   backend:
     build: .
@@ -33,6 +32,8 @@ services:
     depends_on:
       - postgres
       - redis
+    volumes:
+      - ./uploads:/app/src/uploads
 
 volumes:
-   - ./uploads:/app/src/uploads 
+  postgres_data:
