@@ -35,4 +35,4 @@ services:
       - redis
 
 volumes:
-  postgres_data:
+   - ./uploads:/app/src/uploads 
