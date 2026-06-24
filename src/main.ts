@@ -21,8 +21,10 @@ async function bootstrap() {
 
   // ✅ CORS ni to'g'ri yoqish
   app.enableCors({
-    origin: [ "http://localhost:5173", // Frontend manzili
-    'https://crmfrontendn26.netlify.app', 
+    origin: [ 
+      "http://localhost:5173", // Frontend manzili
+      'https://crmfrontendn26.netlify.app', 
+      'https://educrmplatform.netlify.app',
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
     credentials: true,
