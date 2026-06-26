@@ -25,6 +25,8 @@ async function bootstrap() {
       "http://localhost:5173", // Frontend manzili
       'https://crmfrontendn26.netlify.app', 
       'https://educrmplatform.netlify.app',
+      'https://educrmplatform.uz',        // ← qo'shish
+      'https://www.educrmplatform.uz', 
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
     credentials: true,
