@@ -8,7 +8,7 @@ export class JwtGenerateToken{
   ){}
 
   generateAccessToken(payload: any){
-    return this.jwtService.sign(payload, {expiresIn: '1m'})
+    return this.jwtService.sign(payload, {expiresIn: '1h'})
   }
 
   generateRefreshToken(payload: any){
